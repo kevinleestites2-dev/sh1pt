@@ -1,6 +1,6 @@
 {
   "name": "@profullstack/sh1pt-webhooks-discord",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Discord channel-webhook target for sh1pt.",
   "license": "MIT",
   "repository": {

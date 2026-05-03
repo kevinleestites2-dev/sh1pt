@@ -1,6 +1,6 @@
 {
   "name": "@profullstack/sh1pt-recipe-waitlist-crypto-investor",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "type": "module",
   "main": "./src/index.ts",
   "scripts": {

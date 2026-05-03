@@ -235,33 +235,59 @@ export function cookieSetup<C = unknown>(opts: CookieSetupOpts<C>): SetupFn<C> {
       ctx.log(`       a) Use a "Cookie Editor" extension and copy the JSON export, or`);
       ctx.log(`       b) Run \`document.cookie\` in the JS console and copy the whole string.`);
       ctx.log(`     We need: ${opts.cookies.map((c) => c.name).join(', ')}.`);
+      ctx.log(`     If the paste-all step misses anything, we'll ask for each cookie individually.`);
     }
     if (opts.steps) for (const line of opts.steps) ctx.log(`  ${line}`);
     ctx.log(`  3. Paste below. Nothing leaves your machine until it's encrypted.`);
     await ctx.open(opts.loginUrl);
 
-    const raw = await ctx.prompt<string>({
-      type: 'password',
-      message:
-        opts.cookies.length === 1
-          ? `Paste ${opts.cookies[0]!.name} value (or the full document.cookie):`
-          : `Paste cookies (JSON export or "name=value; name2=value2"):`,
-    });
-    if (!raw) {
-      return { ok: false, config: (opts.config ?? {}) as C, manual: ['No cookies pasted — re-run setup when ready.'] };
-    }
-
-    const parsed = parseCookies(raw);
     const found: Record<string, string> = {};
 
-    if (opts.cookies.length === 1 && Object.keys(parsed).length === 0) {
-      // User pasted the value alone for the single-cookie case.
-      found[opts.cookies[0]!.name] = raw.trim();
-    } else {
-      for (const c of opts.cookies) {
-        const v = parsed[c.name];
-        if (v) found[c.name] = v;
+    // Step A: try a paste-all input first. Use a visible 'text' prompt
+    // since long pastes through 'password' (asterisk redraw per char)
+    // get mangled in a lot of terminals. The pasted blob is ephemeral —
+    // it leaves the screen as soon as the user presses Enter.
+    const raw = await ctx.prompt<string>({
+      type: 'text',
+      message:
+        opts.cookies.length === 1
+          ? `Paste ${opts.cookies[0]!.name} value (or the full document.cookie), or leave blank:`
+          : `Paste cookies (JSON export or "name=value; name2=value2"), or leave blank to enter one at a time:`,
+    });
+
+    if (raw && raw.trim().length > 0) {
+      const parsed = parseCookies(raw);
+      if (opts.cookies.length === 1 && Object.keys(parsed).length === 0) {
+        // Single-cookie target and no key/value structure detected —
+        // treat the whole paste as the value.
+        found[opts.cookies[0]!.name] = raw.trim();
+      } else {
+        for (const c of opts.cookies) {
+          const v = parsed[c.name];
+          if (v) found[c.name] = v;
+        }
       }
+      const namesFound = Object.keys(found);
+      if (namesFound.length > 0) {
+        ctx.log(`  ✓ found in paste: ${namesFound.join(', ')}`);
+      } else {
+        ctx.log(`  paste didn't yield any of the cookies we need — falling back to one-at-a-time.`);
+      }
+    }
+
+    // Step B: per-missing-cookie fallback. Mask each individual paste
+    // with 'password' (short values, terminals handle them fine).
+    for (const c of opts.cookies) {
+      if (found[c.name]) continue;
+      const must = c.required !== false;
+      const v = await ctx.prompt<string>({
+        type: 'password',
+        message: `Paste ${c.name}${c.description ? ` (${c.description})` : ''}${must ? '' : ' — optional, blank to skip'}:`,
+      });
+      if (!v) continue;
+      // Accept either "name=value" or just the bare value.
+      const cleaned = v.trim().replace(new RegExp(`^${escapeRegex(c.name)}\\s*=\\s*`), '');
+      if (cleaned) found[c.name] = cleaned;
     }
 
     const missingRequired = required.filter((c) => !found[c.name]);
@@ -271,7 +297,7 @@ export function cookieSetup<C = unknown>(opts: CookieSetupOpts<C>): SetupFn<C> {
         config: (opts.config ?? {}) as C,
         manual: [
           `Couldn't find required cookie(s): ${missingRequired.map((c) => c.name).join(', ')}.`,
-          `Make sure you're logged in at ${opts.loginUrl} before exporting cookies.`,
+          `Make sure you're logged in at ${opts.loginUrl} before exporting cookies, then re-run setup.`,
         ],
       };
     }
@@ -284,13 +310,27 @@ export function cookieSetup<C = unknown>(opts: CookieSetupOpts<C>): SetupFn<C> {
   };
 }
 
-// Best-effort cookie parser. Accepts either:
-//   - JSON array (Cookie Editor / EditThisCookie style: [{name, value, ...}])
+// Best-effort cookie parser. Accepts:
+//   - JSON array (Cookie Editor / EditThisCookie / Get cookies.txt LOCALLY:
+//     [{name, value, ...}, ...])
 //   - "name=value; name2=value2" pairs (raw document.cookie)
 //   - "name=value" newline-separated pairs (curl --cookie style)
+//   - Malformed JSON where the brace structure is broken but
+//     "name":"X","value":"Y" pairs are still recoverable (the common
+//     terminal-paste corruption mode).
 function parseCookies(raw: string): Record<string, string> {
-  const trimmed = raw.trim();
-  if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+  let trimmed = raw.trim().replace(/^﻿/, '');
+  // Strip outer wrapping quotes/backticks if the user's shell escaped
+  // the paste (some prompts do this with multi-line content).
+  for (const wrap of ['"', "'", '`']) {
+    if (trimmed.startsWith(wrap) && trimmed.endsWith(wrap) && trimmed.length > 1) {
+      trimmed = trimmed.slice(1, -1);
+      break;
+    }
+  }
+
+  const looksLikeJson = trimmed.startsWith('[') || trimmed.startsWith('{');
+  if (looksLikeJson) {
     try {
       const data = JSON.parse(trimmed);
       const arr = Array.isArray(data) ? data : [data];
@@ -300,11 +340,29 @@ function parseCookies(raw: string): Record<string, string> {
           out[entry.name] = entry.value;
         }
       }
-      return out;
+      if (Object.keys(out).length > 0) return out;
     } catch {
-      return {};
+      // fall through to regex recovery
     }
+    const out: Record<string, string> = {};
+    // Recover "name":"X" + "value":"Y" pairs even if the surrounding
+    // structure is broken. Cookie Editor puts name before value in
+    // every entry, so a sliding regex catches them in pairs.
+    const re = /"name"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"[^}]*?"value"\s*:\s*"((?:[^"\\]|\\.)*)"/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(trimmed)) !== null) {
+      try {
+        const name = JSON.parse(`"${m[1]!}"`);
+        const value = JSON.parse(`"${m[2]!}"`);
+        if (typeof name === 'string' && typeof value === 'string') out[name] = value;
+      } catch {
+        // skip malformed entry
+      }
+    }
+    if (Object.keys(out).length > 0) return out;
   }
+
+  // name=value; name2=value2 OR newline-separated.
   const out: Record<string, string> = {};
   for (const pair of trimmed.split(/[;\n]/)) {
     const eq = pair.indexOf('=');
@@ -314,6 +372,10 @@ function parseCookies(raw: string): Record<string, string> {
     if (name) out[name] = value;
   }
   return out;
+}
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 // Pure instructions — no automation possible (App Store identity
