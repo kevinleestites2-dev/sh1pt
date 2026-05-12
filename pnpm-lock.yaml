@@ -21,6 +21,126 @@ importers:
         specifier: ^2.1.4
         version: 2.1.9(@types/node@22.19.17)
 
+  packages/affiliates/admitad:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/amazon-associates:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/avangate:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/awin:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/cj:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/clickbank:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/digistore24:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/ebay-partner:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/everflow:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/flexoffers:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/impact:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/jvzoo:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/partnerstack:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/rakuten:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/refersion:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/shareasale:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/skimlinks:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/sovrn:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/tapfiliate:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/affiliates/tradedoubler:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
   packages/agent-providers/opencode:
     dependencies:
       '@profullstack/sh1pt-agent-provider-shared':
@@ -1154,6 +1274,12 @@ importers:
         specifier: workspace:*
         version: link:../../core
 
+  packages/targets/payment-adyen:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
   packages/targets/payment-coinpay:
     dependencies:
       '@profullstack/sh1pt-core':
@@ -1161,6 +1287,12 @@ importers:
         version: link:../../core
 
   packages/targets/payment-paypal:
+    dependencies:
+      '@profullstack/sh1pt-core':
+        specifier: workspace:*
+        version: link:../../core
+
+  packages/targets/payment-square:
     dependencies:
       '@profullstack/sh1pt-core':
         specifier: workspace:*
