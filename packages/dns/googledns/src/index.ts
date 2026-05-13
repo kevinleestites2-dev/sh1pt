@@ -1,4 +1,4 @@
-import { defineDns, type DnsRecord } from '@sh1pt/core';
+import { defineDns, type DnsRecord } from '@profullstack/sh1pt-core';
 
 // Google Cloud DNS REST API v1. Auth: OAuth 2.0 service account
 // (or Application Default Credentials via GOOGLE_APPLICATION_CREDENTIALS).

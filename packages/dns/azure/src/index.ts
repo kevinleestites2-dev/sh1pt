@@ -1,4 +1,4 @@
-import { defineDns, type DnsRecord } from '@sh1pt/core';
+import { defineDns, type DnsRecord } from '@profullstack/sh1pt-core';
 
 // Azure DNS REST API (2018-05-01). Auth: Azure AD service principal
 // (client credentials flow → access token for management.azure.com).

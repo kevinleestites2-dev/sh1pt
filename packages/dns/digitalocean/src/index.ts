@@ -1,4 +1,4 @@
-import { defineDns, type DnsRecord } from '@sh1pt/core';
+import { defineDns, type DnsRecord } from '@profullstack/sh1pt-core';
 
 // DigitalOcean DNS API v2. Auth: Bearer personal access token.
 // Endpoints:

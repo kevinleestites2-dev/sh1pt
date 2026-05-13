@@ -1,4 +1,4 @@
-import { defineDns, type DnsRecord } from '@sh1pt/core';
+import { defineDns, type DnsRecord } from '@profullstack/sh1pt-core';
 
 // AWS Route 53 DNS. Auth: AWS IAM credentials (Access Key + Secret).
 // sh1pt uses the AWS SDK v3 @aws-sdk/client-route-53 under the hood

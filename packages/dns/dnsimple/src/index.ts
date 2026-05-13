@@ -1,4 +1,4 @@
-import { defineDns, type DnsRecord } from '@sh1pt/core';
+import { defineDns, type DnsRecord } from '@profullstack/sh1pt-core';
 
 // DNSimple DNS API v2. Auth: Bearer OAuth token or personal access token.
 // Endpoints (all under https://api.dnsimple.com/v2/:account_id):

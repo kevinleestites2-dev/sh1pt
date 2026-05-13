@@ -1,4 +1,4 @@
-import { defineDns, type DnsRecord } from '@sh1pt/core';
+import { defineDns, type DnsRecord } from '@profullstack/sh1pt-core';
 
 // Namecheap DNS API (XML-based). Auth: API key + username.
 // Base: https://api.namecheap.com/xml.response
