@@ -34,7 +34,7 @@ jobs:
             --token "$GITHUB_TOKEN" \
             --json \
             --output "$RUNNER_TEMP/vu1nz-report" \
-            2>&1 | tee "$RUNNER_TEMP/vu1nz-scan.json"
+            | tee "$RUNNER_TEMP/vu1nz-scan.json" || true
 
       - name: Claude AI review
         if: env.HAS_CLAUDE_KEY == 'true'
