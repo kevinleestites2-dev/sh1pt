@@ -1,0 +1,14 @@
+# Stage 1: Node-based fallback worker (default).
+# Once `perry compile` produces a stable linux-x64 binary,
+# swap to the multi-stage build at the bottom of this file.
+FROM node:22-slim
+WORKDIR /app
+COPY . .
+RUN corepack enable && pnpm install --frozen-lockfile && pnpm build:worker
+CMD ["pnpm", "--filter", "@sh1pt/worker", "start"]
+
+# --- Future: native PerryTS binary worker ---
+# FROM debian:bookworm-slim
+# WORKDIR /app
+# COPY dist/sh1pt-worker-linux-x64 /usr/local/bin/sh1pt-worker
+# CMD ["sh1pt-worker"]

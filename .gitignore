@@ -5,6 +5,7 @@ build/
 .next/
 .cache/
 .sh1pt/
+.claude/
 *.log
 *.tsbuildinfo
 .env
@@ -20,3 +21,4 @@ progress/
 notes/
 .session/
 CLAUDE-*.md
+supabase/.temp

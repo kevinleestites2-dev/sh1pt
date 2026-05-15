@@ -1,7 +1,7 @@
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 
-import { defineAgent, ensureCli, type AgentCLI, type AgentRunContext } from "@sh1pt/core";
+import { defineAgent, ensureCli, type AgentCLI, type AgentRunContext } from "@profullstack/sh1pt-core";
 
 /**
  * Configuration for vu1nz Actions Security Scanner agent.

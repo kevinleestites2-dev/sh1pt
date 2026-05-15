@@ -14,12 +14,14 @@ Each row is a **target adapter** — one plugin in `packages/targets/*`. Status 
 | Target id | Channel | Status |
 |---|---|---|
 | `pkg-npm` | npmjs.com | ✅ |
+| `pkg-ghpackages` | GitHub Packages (npm-compatible) | ✅ |
+| `pkg-aube` | Aube (npm-compatible publish) | ✅ |
 | `pkg-homebrew` | Homebrew tap | ✅ |
 | `pkg-winget` | Microsoft winget | 🚧 |
 | `pkg-scoop` | Scoop bucket | 🚧 |
 | `pkg-apt` | apt repo / PPA | 🚧 |
 | `pkg-snap` | Snapcraft | 🚧 |
-| `pkg-flatpak` | Flathub | 🚧 |
+| `pkg-flatpak` | Flathub | ✅ |
 | `pkg-aur` | Arch User Repo | 🚧 |
 | `pkg-nix` | nixpkgs | 🚧 |
 
@@ -35,6 +37,7 @@ Each row is a **target adapter** — one plugin in `packages/targets/*`. Status 
 | Target id | Channel | Status |
 |---|---|---|
 | `mobile-ios` | App Store Connect + TestFlight | ✅ |
+| `mobile-expo` | Expo / EAS Build, Update, Submit | ✅ |
 | `mobile-android` | Google Play + internal tracks | 🚧 |
 | `pkg-fdroid` | F-Droid (FOSS Android repo) | ✅ |
 | `mobile-huawei` | Huawei AppGallery | — |
@@ -76,7 +79,7 @@ Each row is a **target adapter** — one plugin in `packages/targets/*`. Status 
 | Target id | Channel | Status |
 |---|---|---|
 | `browser-chrome` | Chrome Web Store | ✅ |
-| `browser-firefox` | addons.mozilla.org | 🚧 |
+| `browser-firefox` | addons.mozilla.org | ✅ |
 | `browser-edge` | Edge Add-ons | 🚧 |
 | `browser-safari` | App Store (Safari ext.) | 🚧 |
 
@@ -147,6 +150,12 @@ Each row is a **target adapter** — one plugin in `packages/targets/*`. Status 
 | `pkg-cdn` | jsDelivr / unpkg / esm.sh / cdnjs / Skypack / JSPM | ✅ |
 | `pkg-docker` | Docker Hub / GHCR / Quay / ECR / GCR / ACR | ✅ |
 
+### Native compile / QA
+| Target id | Channel | Status |
+|---|---|---|
+| `pkg-perry` | [Perry](https://www.perryts.com/en/) — TS → native compile + publish (App Store / Play Store / direct) | 🚧 |
+| `qa-geisterhand` | [Geisterhand](https://geisterhand.io/) — UI test/automation harness | 🚧 |
+
 ### App hosting
 | Target id | Channel | Status |
 |---|---|---|
@@ -154,9 +163,10 @@ Each row is a **target adapter** — one plugin in `packages/targets/*`. Status 
 | `deploy-workers` | Cloudflare Workers | ✅ |
 | `deploy-fly` | Fly.io | ✅ |
 | `deploy-railway` | Railway | ✅ |
-| `deploy-render` | Render | — |
-| `deploy-vercel` | Vercel (SSR/API) | — |
-| `deploy-netlify` | Netlify (Functions/Edge) | — |
+| `deploy-render` | Render | ✅ |
+| `deploy-vercel` | Vercel (SSR/API) | ✅ |
+| `deploy-netlify` | Netlify (Functions/Edge) | ✅ |
+| `deploy-firebase` | Firebase Hosting / Functions | ✅ |
 | `deploy-lambda` | AWS Lambda | — |
 | `deploy-cloudrun` | Google Cloud Run | — |
 

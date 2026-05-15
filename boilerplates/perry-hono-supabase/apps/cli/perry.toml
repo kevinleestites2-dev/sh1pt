@@ -1,0 +1,21 @@
+[project]
+name = "sh1pt-cli"
+version = "0.1.0"
+
+[build]
+entry = "src/index.ts"
+target = "native"
+out_dir = "../../dist"
+output = "sh1pt-cli"
+
+[targets]
+platforms = [
+  "linux-x64",
+  "linux-arm64",
+  "darwin-arm64",
+  "darwin-x64",
+  "windows-x64",
+]
+
+[env]
+log_level = "info"

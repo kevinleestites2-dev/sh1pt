@@ -1,0 +1,32 @@
+{
+  "name": "sh1pt-perry-hono-supabase",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:web": "pnpm --filter @sh1pt/web dev",
+    "dev:api": "pnpm --filter @sh1pt/api dev",
+    "dev:worker": "pnpm --filter @sh1pt/worker dev",
+    "dev:cli": "pnpm --filter @sh1pt/cli dev",
+    "build": "pnpm -r build",
+    "build:api": "pnpm --filter @sh1pt/api build",
+    "build:cli": "pnpm --filter @sh1pt/cli build",
+    "build:worker": "pnpm --filter @sh1pt/worker build",
+    "build:web": "pnpm --filter @sh1pt/web build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "perry:build:cli": "perry compile apps/cli/src/index.ts -o dist/sh1pt-cli",
+    "perry:build:worker": "perry compile apps/worker/src/index.ts -o dist/sh1pt-worker",
+    "perry:run:cli": "dist/sh1pt-cli",
+    "perry:run:worker": "dist/sh1pt-worker",
+    "ship": "sh1pt ship"
+  },
+  "devDependencies": {
+    "@profullstack/sh1pt": "^0.1.0",
+    "@profullstack/sh1pt-core": "^0.0.0",
+    "typescript": "^5.6.0"
+  }
+}

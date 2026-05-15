@@ -1,3 +1,5 @@
+import { autoSetup } from './setup-helpers.js';
+
 export type AdObjective = 'install' | 'web-traffic' | 'awareness' | 'engagement' | 'signup' | 'purchase';
 
 export interface Creative {
@@ -41,7 +43,7 @@ export interface CampaignContext {
   dryRun: boolean;
 }
 
-export interface ConnectContext {
+export interface AdConnectContext {
   secret(key: string): string | undefined;
   log(msg: string, level?: 'info' | 'warn' | 'error'): void;
 }
@@ -92,16 +94,17 @@ export interface AdPlatform<Config = unknown> {
   // Optional. If present, `sh1pt promo setup --platform <id>` calls this
   // to render a guided checklist: business account → ad account → payment
   // → review state. Platforms without onboard() just run connect().
-  onboard?(ctx: ConnectContext, config: Config): Promise<OnboardState>;
-  connect(ctx: ConnectContext, config: Config): Promise<{ accountId: string }>;
+  onboard?(ctx: AdConnectContext, config: Config): Promise<OnboardState>;
+  connect(ctx: AdConnectContext, config: Config): Promise<{ accountId: string }>;
   start(ctx: CampaignContext, config: Config): Promise<CampaignResult>;
   status(campaignId: string, config: Config): Promise<CampaignMetrics>;
   stop(campaignId: string, config: Config): Promise<void>;
   update?(campaignId: string, patch: Partial<CampaignContext>, config: Config): Promise<void>;
+  setup?(ctx: import('./setup.js').SetupContext): Promise<import('./setup.js').SetupResult<Config>>;
 }
 
 export function defineAdPlatform<Config>(p: AdPlatform<Config>): AdPlatform<Config> {
-  return p;
+  return autoSetup(p);
 }
 
 const adRegistry = new Map<string, AdPlatform<any>>();

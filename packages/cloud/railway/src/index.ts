@@ -1,4 +1,4 @@
-import { defineCloud, type Instance } from '@sh1pt/core';
+import { defineCloud, tokenSetup, type Instance } from '@profullstack/sh1pt-core';
 
 // Railway — app hosting with a GraphQL API. Not a raw-VPS provider,
 // but sh1pt models each Railway *service* as an instance for scaling
@@ -31,16 +31,29 @@ export default defineCloud<Config>({
   },
 
   async provision(ctx, spec, config) {
-    ctx.log(`railway provision · project=${config.projectId}`);
+    ctx.log(`railway add/up · project=${config.projectId}`);
     if (ctx.dryRun) return stub('dry-run', 'provisioning', spec.kind);
     // TODO: GraphQL mutation serviceCreate({ projectId, name, source: { repo / image } })
     // For GPU workloads, Railway isn't viable — flag to user and suggest cloud-runpod.
     return stub(`rw_${Date.now()}`, 'provisioning', spec.kind);
   },
 
-  async list() { return []; },
-  async destroy(ctx, id) { ctx.log(`railway destroy service=${id}`); },
-  async status(ctx, id) { return stub(id, 'running', 'cpu-vps'); },
+  async list(ctx) { ctx.log('railway service status --all --json'); return []; },
+  async destroy(ctx, id) { ctx.log(`railway service delete ${id}`); },
+  async status(ctx, id) { ctx.log(`railway service status --service ${id} --json`); return stub(id, 'running', 'cpu-vps'); },
+
+  setup: tokenSetup({
+    secretKey: 'RAILWAY_TOKEN',
+    label: 'Railway',
+    vendorDocUrl: 'https://railway.app/account/tokens',
+    steps: [
+      'Install with mise: mise use npm:@railway/cli',
+      'Authenticate locally: railway login',
+      'Open https://railway.app/account/tokens',
+      'Create an API token with full / read-write scope',
+      'Copy the token (usually shown once)',
+    ],
+  }),
 });
 
 function stub(id: string, status: Instance['status'], kind: Instance['kind']): Instance {

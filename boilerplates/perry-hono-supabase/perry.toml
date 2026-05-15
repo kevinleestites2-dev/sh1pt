@@ -1,0 +1,10 @@
+[project]
+name = "sh1pt-perry-hono-supabase"
+version = "0.1.0"
+
+[build]
+target = "native"
+out_dir = "dist"
+
+[env]
+log_level = "info"

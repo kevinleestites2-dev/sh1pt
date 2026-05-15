@@ -1,4 +1,4 @@
-import { defineConfig } from '@sh1pt/core';
+import { defineConfig } from '@profullstack/sh1pt-core';
 
 // sh1pt.com — sh1pt's own marketing + waitlist + investor site.
 // Uses the waitlist-crypto-investor recipe (dogfooding) and ships to
@@ -6,6 +6,7 @@ import { defineConfig } from '@sh1pt/core';
 export default defineConfig({
   name: 'sh1pt-dot-com',
   version: '0.1.0',
+  channels: ['stable'],
   description: 'sh1pt.com — marketing site + prepaid waitlist + investor page',
   recipe: 'waitlist-crypto-investor',
   recipeConfig: {}, // accept the recipe defaults ($244 early-bird / $499 standard, etc.)
@@ -19,11 +20,12 @@ export default defineConfig({
   targets: {
     web: {
       use: 'web-static',
+      enabled: true,
       config: {
         dir: './.next',
         provider: 'cloudflare-pages',
         project: 'sh1pt-dot-com',
-        domain: 'sh1pt.dev',
+        domain: 'sh1pt.com',
       },
     },
   },
@@ -31,6 +33,7 @@ export default defineConfig({
     prebuild: 'next build',
   },
   cloud: {
+    apiUrl: 'https://api.sh1pt.com',
     org: 'profullstack',
     project: 'sh1pt-dot-com',
   },

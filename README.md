@@ -13,6 +13,14 @@
 
 **One codebase → every store, registry, CDN, and channel. Ads on every network. Cloud infra on demand. AI agents tighten the loop.**
 
+### Install the CLI
+
+```bash
+curl -fsSL https://sh1pt.com/install.sh | sh
+```
+
+Or: `pnpm add -g @profullstack/sh1pt` · `aube add -g @profullstack/sh1pt` · `bun i -g @profullstack/sh1pt` · `npm i -g @profullstack/sh1pt`
+
 [![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 [![cloud](https://img.shields.io/badge/cloud-%24499%2Fyr-blueviolet)](#pricing)
 [![status](https://img.shields.io/badge/status-alpha-orange)](#)
@@ -24,8 +32,21 @@
 [![Rust](https://img.shields.io/badge/Rust-000?logo=rust&logoColor=white)](#)
 [![C++ planned](https://img.shields.io/badge/C%2B%2B-planned-gray?logo=cplusplus&logoColor=white)](#)
 [![.NET planned](https://img.shields.io/badge/.NET-planned-gray?logo=dotnet&logoColor=white)](#)
+[![mise](https://img.shields.io/badge/mise-dev_env-00A98F)](https://mise.jdx.dev)
 [![pnpm](https://img.shields.io/badge/pnpm-F69220?logo=pnpm&logoColor=white)](#)
 [![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?logo=supabase&logoColor=white)](#)
+
+### Dev Env
+
+This repo uses [`mise`](https://mise.jdx.dev) as the default local environment for Node, Python, Rust, Bun, Deno, package managers, and repeatable tasks:
+
+```bash
+mise install
+mise run install
+mise run typecheck
+```
+
+See [`CLI_INTEGRATIONS.md`](./CLI_INTEGRATIONS.md) for the CLI-backed integration backlog and install hints.
 
 ### Ships to
 
@@ -81,6 +102,7 @@
 
 **Package managers**
 ![npm](https://img.shields.io/badge/npm-CB3837?logo=npm&logoColor=white)
+[![Aube](https://img.shields.io/badge/Aube-111?logo=nodedotjs&logoColor=white)](https://aube.en.dev)
 ![JSR](https://img.shields.io/badge/JSR-F7DF1E?logo=javascript&logoColor=black)
 ![Deno Land](https://img.shields.io/badge/deno.land%2Fx-000?logo=deno&logoColor=white)
 ![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-181717?logo=github&logoColor=white)
@@ -153,7 +175,7 @@
 ![Stacker News](https://img.shields.io/badge/Stacker_News-F7931A?logo=bitcoin&logoColor=white)
 ![Blossom](https://img.shields.io/badge/Blossom_Social-EC4899?logo=nostr&logoColor=white)
 
-**Niche / user-supplied social (stubs pending API docs)**
+**Niche / user-supplied social (some stubs pending API docs; separate from the skills marketplace matrix below)**
 ![Moltbook](https://img.shields.io/badge/Moltbook-475569?logoColor=white)
 ![uGig](https://img.shields.io/badge/uGig-475569?logoColor=white)
 ![OpenWork](https://img.shields.io/badge/OpenWork-475569?logoColor=white)
@@ -299,7 +321,62 @@ sh1pt iterate
 
 sh1pt login                                         (auxiliary)
 sh1pt secret set|get|list|rm                        (auxiliary — credentials vault)
+sh1pt skills new|create                             create sh1pt.skill.json from SKILL.md
+sh1pt skills publish --all [--dry-run]              promote agent skills to uGig/ClawHub/etc.
+sh1pt skills marketplaces                           list supported skill marketplaces
 ```
+
+### skills
+
+```bash
+sh1pt skills new --skill-file ./SKILL.md --source-url https://raw.example/SKILL.md --price 0
+sh1pt skills publish --all --dry-run
+sh1pt skills publish --marketplace ugig clawhub goose
+sh1pt skills marketplaces
+```
+
+`sh1pt skills new` creates a `sh1pt.skill.json` promotion manifest from a local `SKILL.md`. `sh1pt skills publish --all --dry-run` prints the exact uGig/ClawHub/Goose/LobeHub/Kilo/Skillstore/etc. commands or manual steps so agents can register, verify credentials, and promote without guessing.
+
+Example dry-run shape:
+
+```bash
+$ sh1pt skills publish --marketplace ugig clawhub goose --dry-run
+
+uGig (CLI/API · live)
+  ugig skills new --title "My Skill" --description "..."
+
+ClawHub (CLI · live)
+  npm exec --package=clawhub@latest -- clawhub skill publish . --slug my-skill --name "My Skill" --version 1.0.0 --tags latest,automation
+
+Goose Skills (GitHub PR · manual)
+  Add a skills/capabilities/<slug>/SKILL.md plus skill.meta.json entry to gooseworks-ai/goose-skills.
+  next step: open the required PR/import/browser flow after preparing the assets above
+```
+
+#### skills marketplace readiness
+
+| Marketplace / registry | Current status | Notes |
+| --- | --- | --- |
+| uGig | live | concrete CLI/API publish path + dedicated adapter package |
+| ClawHub | live | concrete CLI publish path |
+| Goose Skills | manual | GitHub PR flow documented by the CLI |
+| LobeHub | manual | GitHub PR / compatible agent entry flow |
+| Kilo Marketplace | manual | helper command scaffold exists, but still requires marketplace-side submission |
+| AI Skillstore | manual | GitHub PR flow documented by the CLI |
+| Manus Agent Skills | manual | public GitHub import flow |
+| VS Code Agent Skills | manual | GitHub PR / index submission flow |
+| Moltbook | manual | issue/PR submission path |
+| AgentHub | manual | account import flow |
+| FreeMyGent | constrained | wallet/on-chain listing flow, not a simple API-key publish path |
+| ClawMart | constrained | paid creator membership + API key required |
+
+Use `sh1pt skills publish --all --dry-run` when you want the exact next-step commands without guessing. The publish output now mirrors the matrix directly: live targets print concrete commands, manual targets print the documented PR/import step, and constrained targets print the blocking requirement before publication. The current rule of thumb is:
+
+- **live** = concrete command path exists today
+- **manual** = supported via PR/import/browser steps
+- **constrained** = blocked on paid membership, wallet flow, or platform-side requirements
+
+Important: the matrix above is specifically about **skills marketplace publishing**. If a platform name also appears elsewhere in sh1pt under outreach/social surfaces, treat that as a different integration path with its own readiness level.
 
 ### promote ship
 
@@ -329,6 +406,8 @@ sh1pt promote creatives
 ```
 
 Publishing alone is table stakes. `promote` closes the loop — one command runs install / traffic / awareness campaigns on Reddit, Meta, TikTok, Google, YouTube, X, Apple Search, LinkedIn, and Microsoft Ads at once.
+
+For launch surfaces like **Product Hunt**, sh1pt can prepare the launch workflow and metadata, but the final submission still runs through browser/manual steps to stay aligned with platform rules.
 
 ### scale deploy
 
@@ -553,11 +632,11 @@ Local git stays the source of truth. The VCS provider handles remote-side operat
 
 ## Contract tests
 
-Every adapter implements one of ~12 interfaces (`Target`, `AdPlatform`, `CloudProvider`, `DnsProvider`, `MerchProvider`, `PaymentProvider`, `SocialPlatform`, `VcsProvider`, `WebhookTarget`, `AgentCLI`, `CaptchaSolver`, `Recipe`). sh1pt ships generic contract-test runners in `@sh1pt/core/testing` — adapters consume them with one line:
+Every adapter implements one of ~12 interfaces (`Target`, `AdPlatform`, `CloudProvider`, `DnsProvider`, `MerchProvider`, `PaymentProvider`, `SocialPlatform`, `VcsProvider`, `WebhookTarget`, `AgentCLI`, `CaptchaSolver`, `Recipe`). sh1pt ships generic contract-test runners in `@profullstack/sh1pt-core/testing` — adapters consume them with one line:
 
 ```ts
 // packages/payments/coinpay/src/index.test.ts
-import { contractTestPayment } from '@sh1pt/core/testing';
+import { contractTestPayment } from '@profullstack/sh1pt-core/testing';
 import payment from './index.js';
 
 contractTestPayment(payment, {
@@ -585,7 +664,7 @@ pnpm test:watch       # vitest --watch
 
 ```ts
 // smoke test — used on ~110 adapters across the repo
-import { smokeTest } from '@sh1pt/core/testing';
+import { smokeTest } from '@profullstack/sh1pt-core/testing';
 import adapter from './index.js';
 smokeTest(adapter, { idPrefix: 'social' });
 ```
@@ -665,15 +744,23 @@ sh1pt promote --budget 100/day  # run ads across Reddit / Meta / TikTok / Google
 # … collect prepaid signups. build what pays.
 ```
 
-### Runtime
-
-The `sh1pt` CLI runs on **Node** (22+), **Bun** (1.1+), and **Deno** (2.0+). Install whichever you prefer:
+### Install
 
 ```bash
-npm  install -g @sh1pt/cli      # or
-bun  install -g @sh1pt/cli      # or
-deno install -g -A -n sh1pt jsr:@sh1pt/cli
+curl -fsSL https://sh1pt.com/install.sh | sh
 ```
+
+The installer picks whichever JS runtime/package manager it finds (`bun` -> `pnpm` -> `aube` -> `npm` -> `deno`) and installs `@profullstack/sh1pt` globally. Or pick your own:
+
+```bash
+pnpm add     -g @profullstack/sh1pt      # or
+aube add     -g @profullstack/sh1pt      # or
+bun  install -g @profullstack/sh1pt      # or
+npm  install -g @profullstack/sh1pt      # or
+deno install -g -A -f -n sh1pt npm:@profullstack/sh1pt
+```
+
+The CLI runs on **Node** (22+), **Bun** (1.1+), and **Deno** (2.0+).
 
 Future: `bun build --compile` will produce a standalone binary for `brew install sh1pt`, `winget install sh1pt`, etc. — no JS runtime required on the user's machine.
 
@@ -709,9 +796,12 @@ sh1pt/
 │   ├── api/              SaaS backend (Hono) — projects, releases, builds, credentials, agents
 │   ├── policy/           Store-policy linter (runs before every ship)
 │   ├── promo/            Ad-platform adapters (reddit, meta, tiktok, google, youtube, x, apple-search, linkedin, microsoft)
-│   ├── cloud/            Cloud-infra adapters (runpod, digitalocean, vultr, hetzner, atlantic, railway, cloudflare)
+│   ├── cloud/            Cloud-infra adapters (runpod, digitalocean, vultr, hetzner, atlantic, railway, cloudflare, fly, supabase, firebase)
 │   ├── dns/              DNS adapters (porkbun, cloudflare)
 │   ├── agents/           AI CLI adapters (claude, codex, qwen)
+│   ├── secrets/          Secret-provider CLI adapters (doppler, dotenvx, onepassword)
+│   ├── observability/    Release/telemetry CLI adapters (sentry)
+│   ├── security/         Security scanner CLI adapters (snyk)
 │   ├── recipes/          App-type recipes (waitlist-crypto-investor, …)
 │   ├── merch/            Print-on-demand adapters (printful, printify)
 │   ├── captcha/          Captcha-solver adapters (2captcha, captcha-solver) — browser-mode fallback only
@@ -725,8 +815,10 @@ sh1pt/
 │   ├── web/              Dashboard (stub)
 │   └── targets/          One adapter per distribution surface
 │       ├── pkg-npm/
+│       ├── pkg-aube/
 │       ├── pkg-homebrew/
 │       ├── mobile-ios/
+│       ├── mobile-expo/
 │       ├── desktop-mac/
 │       ├── desktop-win/
 │       ├── desktop-linux/
@@ -755,6 +847,10 @@ sh1pt/
 │       ├── deploy-workers/    Cloudflare Workers
 │       ├── deploy-fly/        Fly.io
 │       ├── deploy-railway/    Railway
+│       ├── deploy-vercel/     Vercel
+│       ├── deploy-netlify/    Netlify
+│       ├── deploy-render/     Render
+│       ├── deploy-firebase/   Firebase Hosting / Functions
 │       ├── chat-telegram/     Telegram Bot API
 │       ├── chat-slack/        Slack App Directory
 │       ├── chat-signal/       Signal (signal-cli / signald, ⚠ no official bot platform)
@@ -779,7 +875,7 @@ sh1pt/
 
 ## What this repo publishes
 
-Just the CLI. `sh1pt.config.ts` at the root uses sh1pt itself to fan the CLI out to every package manager — `npm install -g @sh1pt/cli`, `brew install sh1pt`, `winget install sh1pt`, `scoop install sh1pt`, etc. Lib packages (`@sh1pt/core`, `@sh1pt/sdk`, `@sh1pt/policy`, target adapters) ride along on npm so `sh1pt init` and target plugins can pull them at runtime.
+Just the CLI. `sh1pt.config.ts` at the root uses sh1pt itself to fan the CLI out to every package manager — `npm install -g @profullstack/sh1pt`, `brew install sh1pt`, `winget install sh1pt`, `scoop install sh1pt`, etc. Lib packages (`@profullstack/sh1pt-core`, `@profullstack/sh1pt-sdk`, `@profullstack/sh1pt-policy`, target adapters) ride along on npm so `sh1pt init` and target plugins can pull them at runtime.
 
 ## Concepts
 
@@ -787,7 +883,7 @@ Just the CLI. `sh1pt.config.ts` at the root uses sh1pt itself to fan the CLI out
 - **Target**: a plugin that knows how to `build`, `ship`, `status`, and `rollback` for one surface.
 - **Release**: a versioned build destined for one or more targets on a given **channel** (`stable` / `beta` / `canary`).
 - **Channel → store track mapping**: `beta` routes to TestFlight on iOS, Play internal track on Android, Chrome Web Store testing, etc. `stable` promotes to production.
-- **Policy linter** (`@sh1pt/policy`): runs before every ship. Catches duplicate titles, banned keywords, bad bundle ids, and spammy submission rate *before* the store rejects you (or flags the account).
+- **Policy linter** (`@profullstack/sh1pt-policy`): runs before every ship. Catches duplicate titles, banned keywords, bad bundle ids, and spammy submission rate *before* the store rejects you (or flags the account).
 - **Cloud**: projects, secrets vault, build queue with per-OS runners, release history, live status dashboards, inbound webhooks from store APIs, outbound webhooks to your systems.
 
 ## Agent-first API

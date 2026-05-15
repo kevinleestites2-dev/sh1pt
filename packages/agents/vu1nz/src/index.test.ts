@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { contractTestAgent } from "@sh1pt/core/testing";
+import { contractTestAgent } from "@profullstack/sh1pt-core/testing";
 
 import agent from "./index.js";
 

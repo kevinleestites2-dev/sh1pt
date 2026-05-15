@@ -1,4 +1,4 @@
-import { defineDns, type DnsRecord } from '@sh1pt/core';
+import { defineDns, tokenSetup, type DnsRecord } from '@profullstack/sh1pt-core';
 
 // Porkbun DNS API (v3). Auth is API key + secret (not OAuth). Endpoints:
 //   POST /api/json/v3/dns/retrieve/:domain
@@ -20,7 +20,7 @@ export default defineDns<Config>({
 
   async connect(ctx) {
     if (!ctx.secret('PORKBUN_API_KEY') || !ctx.secret('PORKBUN_API_SECRET')) {
-      throw new Error('set PORKBUN_API_KEY and PORKBUN_API_SECRET via `sh1pt secret set`');
+      throw new Error('PORKBUN_API_KEY / PORKBUN_API_SECRET not set — run `sh1pt secret set PORKBUN_API_KEY ...`');
     }
     ctx.log('porkbun connected');
     return { accountId: 'porkbun' };
@@ -41,7 +41,7 @@ export default defineDns<Config>({
   async upsertRecord(zoneId, record) {
     // TODO: check existing via retrieve, then create or edit as appropriate.
     // POST ${API}/dns/create/${zoneId} with { apikey, secretapikey, name, type, content, ttl, prio? }
-    return { id: 'stub', zone: zoneId, ...record };
+    return { id: 'stub', ...record, zone: zoneId };
   },
 
   async deleteRecord(zoneId, recordId) {
@@ -63,4 +63,19 @@ export default defineDns<Config>({
       ttl: ttlFinal,
     })) satisfies DnsRecord[];
   },
+
+  setup: tokenSetup<Config>({
+    secretKey: 'PORKBUN_API_KEY',
+    label: 'Porkbun DNS',
+    vendorDocUrl: 'https://porkbun.com/account/api',
+    steps: [
+      'Open porkbun.com → Account → API Access',
+      'Enable API access for each domain sh1pt should manage',
+      'Create API credentials → copy both the API Key and Secret API Key',
+      'Paste API Key when prompted; the secret you will enter on the next prompt',
+    ],
+    fields: [
+      { key: 'PORKBUN_API_SECRET', message: 'Paste the Porkbun Secret API Key:', secret: true, required: true },
+    ],
+  }),
 });
