@@ -39,6 +39,12 @@ importers:
         specifier: workspace:*
         version: link:../../core
 
+  packages/agents/vu1nz:
+    dependencies:
+      '@sh1pt/core':
+        specifier: workspace:*
+        version: link:../../core
+
   packages/api:
     dependencies:
       '@hono/node-server':
