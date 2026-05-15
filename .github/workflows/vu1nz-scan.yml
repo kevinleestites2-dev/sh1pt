@@ -27,10 +27,18 @@ jobs:
           ENV_FILE: ${{ secrets.ENV_FILE }}
         run: |
           echo "$ENV_FILE" > "$RUNNER_TEMP/.env"
+          # Debug: show available key names only (no values)
+          echo "Keys in ENV_FILE:"
+          grep -oP '^[A-Z_]+(?==)' "$RUNNER_TEMP/.env" || echo "(no keys found or different format)"
           # Export ANTHROPIC_API_KEY from the env file
-          ANTHROPIC_API_KEY=$(grep '^ANTHROPIC_API_KEY=' "$RUNNER_TEMP/.env" | cut -d'=' -f2-)
-          echo "::add-mask::$ANTHROPIC_API_KEY"
-          echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> "$GITHUB_ENV"
+          ANTHROPIC_API_KEY=$(grep -E '^ANTHROPIC_API_KEY=' "$RUNNER_TEMP/.env" | head -1 | sed 's/^ANTHROPIC_API_KEY=//')
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "::add-mask::$ANTHROPIC_API_KEY"
+            echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> "$GITHUB_ENV"
+            echo "ANTHROPIC_API_KEY found and exported"
+          else
+            echo "::warning::ANTHROPIC_API_KEY not found in ENV_FILE"
+          fi
 
       - name: Review PR
         id: review
