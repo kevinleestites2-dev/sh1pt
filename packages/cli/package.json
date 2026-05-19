@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@profullstack/sh1pt-core": "workspace:^",
+    "@profullstack/sh1pt-openapi": "workspace:^",
     "@profullstack/sh1pt-policy": "workspace:^",
     "commander": "^12.1.0",
     "kleur": "^4.1.5",

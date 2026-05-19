@@ -781,6 +781,9 @@ importers:
       '@profullstack/sh1pt-core':
         specifier: workspace:^
         version: link:../core
+      '@profullstack/sh1pt-openapi':
+        specifier: workspace:^
+        version: link:../openapi
       '@profullstack/sh1pt-policy':
         specifier: workspace:^
         version: link:../policy
@@ -1124,6 +1127,12 @@ importers:
       '@profullstack/sh1pt-core':
         specifier: workspace:*
         version: link:../../core
+
+  packages/openapi:
+    dependencies:
+      yaml:
+        specifier: ^2.6.0
+        version: 2.9.0
 
   packages/outreach/listennotes:
     dependencies:
@@ -5991,6 +6000,11 @@ packages:
       utf-8-validate:
         optional: true
 
+  yaml@2.9.0:
+    resolution: {integrity: sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==}
+    engines: {node: '>= 14.6'}
+    hasBin: true
+
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
@@ -7828,6 +7842,8 @@ snapshots:
   word-wrap@1.2.5: {}
 
   ws@8.20.0: {}
+
+  yaml@2.9.0: {}
 
   yocto-queue@0.1.0: {}
 

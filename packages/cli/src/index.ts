@@ -15,6 +15,7 @@ import { CATEGORIES } from './adapter-registry.js';
 import { skillsCmd } from './commands/skills.js';
 import { agentsCmd } from './commands/agents.js';
 import { deployCmd } from './commands/deploy.js';
+import { openapiCmd } from './commands/openapi.js';
 
 const program = new Command();
 
@@ -46,6 +47,7 @@ program.addCommand(configCmd);
 program.addCommand(skillsCmd);      // skills   · package/promote SKILL.md agent skills across marketplaces
 program.addCommand(agentsCmd);      // agents   · generate/run/talk with AI coding CLIs
 program.addCommand(deployCmd);      // deploy   · provision cloud infrastructure
+program.addCommand(openapiCmd);     // openapi  · spec → SDK + MCP server + docs site (Stainless-style)
 
 // Self-management — sh1pt update / upgrade / remove / uninstall.
 program.addCommand(updateCmd);
