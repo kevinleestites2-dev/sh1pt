@@ -51,6 +51,8 @@ These have real CLIs and map directly to existing or planned adapter surfaces.
 | GitLab | `glab` | `vcs/gitlab` | Exists, CLI-backed setup |
 | 1Password | `op` | `secrets/onepassword` | Exists |
 | Snyk | `snyk` | `security/snyk` | Exists |
+| Stagehand (Browserbase) | `npx @browserbasehq/stagehand` | `automation/stagehand` | Exists. AI browser automation — local Chromium or Browserbase cloud. |
+| OpenAPI → SDK/MCP/docs | `sh1pt openapi <sdk\|mcp\|docs\|all>` | built into the CLI (`packages/openapi`) | Stainless-style spec-driven generator. No external CLI needed. |
 
 ## Adapter rule
 

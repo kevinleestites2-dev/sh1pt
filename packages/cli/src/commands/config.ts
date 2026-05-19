@@ -292,8 +292,8 @@ const webhooksListCmd = webhooksCmd
     let targets: string[] = [];
     let subscriptions: Array<{ url: string; events: string; description?: string }> = [];
     try {
-      const { loadSync } = await import('../local-vault.js');
-      const vault = loadSync();
+      const { loadLocalVaultSync } = await import('../local-vault.js');
+      const vault = loadLocalVaultSync();
       const raw = vault.get('webhooks');
       if (raw) {
         const parsed = JSON.parse(typeof raw === 'string' ? raw : String(raw));

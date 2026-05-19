@@ -10,6 +10,7 @@ export * from './ai.js';
 export * from './recipe.js';
 export * from './merch.js';
 export * from './captcha.js';
+export * from './automation.js';
 export * from './social.js';
 export * from './payments.js';
 export * from './vcs.js';

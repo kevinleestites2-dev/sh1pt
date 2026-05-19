@@ -51,6 +51,12 @@ export const CATEGORIES: readonly AdapterCategory[] = [
     ],
   },
   {
+    id: 'automation',
+    pkgPrefix: '@profullstack/sh1pt-automation',
+    description: 'AI browser automation — Stagehand (Browserbase) and friends',
+    adapters: ['stagehand'],
+  },
+  {
     id: 'bots',
     pkgPrefix: '@profullstack/sh1pt-bot',
     description: 'Chat bots — Discord, Telegram, Slack, Signal, Matrix…',

@@ -1,12 +1,10 @@
 import { Command } from 'commander';
 import kleur from 'kleur';
-import { readFileSync, existsSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { describeInput, resolveInput } from '../input.js';
-import { deployCmd } from './deploy.js';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve } from 'node:path';
+import { describeInput, resolveInput } from '../input.js';
+import { deployCmd } from './deploy.js';
 
 // Shared fleet state — mirrors the cost and auto commands
 const CREDS_FILE = join(homedir(), '.sh1pt', 'credentials.json');

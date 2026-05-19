@@ -319,6 +319,13 @@ sh1pt iterate
   agents                                            drive Claude / Codex / Qwen
     list / setup / talk / run / generate
 
+sh1pt openapi sdk <spec>                            generate a TS SDK from an OpenAPI spec
+sh1pt openapi mcp <spec>                            generate an MCP server (one tool per op)
+sh1pt openapi docs <spec>                           generate a markdown docs site
+sh1pt openapi all <spec>                            all three, in parallel
+
+sh1pt automation stagehand setup                    AI browser automation (Browserbase, local Chromium)
+
 sh1pt login                                         (auxiliary)
 sh1pt secret set|get|list|rm                        (auxiliary — credentials vault)
 sh1pt skills new|create                             create sh1pt.skill.json from SKILL.md
