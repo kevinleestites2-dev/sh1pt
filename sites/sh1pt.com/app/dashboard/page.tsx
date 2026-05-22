@@ -1,6 +1,8 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { getSupabaseServiceClient } from '@/lib/supabase/service';
 
 export const metadata = {
   title: 'sh1pt — dashboard',
@@ -32,6 +34,13 @@ export default async function Dashboard() {
     .from('referrals')
     .select('id', { count: 'exact', head: true })
     .eq('referred_by', profile.id);
+
+  const adminClient = getSupabaseServiceClient();
+  const { count: installationCount } = await adminClient
+    .from('github_installations')
+    .select('id', { count: 'exact', head: true })
+    .eq('profile_id', profile.id)
+    .eq('status', 'active');
 
   const h = await headers();
   const host = h.get('x-forwarded-host') ?? h.get('host');
@@ -97,6 +106,28 @@ export default async function Dashboard() {
                 CoinPay (BTC / ETH / USDC / SOL) or Stripe. We'll email you the moment the payment link goes live — $244/yr stays locked for 14 days from that email, refundable within 14 days if you change your mind.
               </p>
             ) : null}
+          </div>
+
+          <div className="card" style={{ marginTop: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+              <div>
+                <div className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Actions Fleet
+                </div>
+                <div style={{ fontSize: '1.05rem', marginTop: '0.25rem' }}>
+                  {installationCount && installationCount > 0
+                    ? `${installationCount} GitHub installation${installationCount === 1 ? '' : 's'} connected`
+                    : 'Connect GitHub to install workflow packs across your repos'}
+                </div>
+              </div>
+              <Link
+                href={installationCount && installationCount > 0 ? '/dashboard/github' : '/dashboard/connect/github'}
+                className="btn"
+                style={{ fontSize: '0.9rem' }}
+              >
+                {installationCount && installationCount > 0 ? 'Manage' : 'Connect GitHub'}
+              </Link>
+            </div>
           </div>
         </div>
       </section>

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import GithubAppSection from './GithubAppSection';
 
 type Integration = {
   id: string;
@@ -104,7 +105,7 @@ export default function AdminContent() {
     <main className="container" style={{ paddingTop: 80, paddingBottom: 80, maxWidth: 760 }}>
       <h1 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', margin: 0 }}>Admin</h1>
       <p className="muted" style={{ marginTop: 8 }}>
-        Blog publishing webhook (Crawlproof Autoblog).
+        Platform integrations: Crawlproof Autoblog webhook + Actions Fleet GitHub App.
       </p>
 
       {error && (
@@ -286,6 +287,8 @@ export default function AdminContent() {
           </ul>
         )}
       </section>
+
+      <GithubAppSection />
 
       <p style={{ marginTop: 24, fontSize: '0.85rem' }}>
         <Link href="/dashboard" className="muted">
