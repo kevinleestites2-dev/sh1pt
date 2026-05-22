@@ -50,7 +50,11 @@ function buildManifest(base: string) {
       metadata: 'read',
       actions: 'read',
     } as ManifestPermissions,
-    default_events: ['installation', 'installation_repositories'],
+    // `installation` and `installation_repositories` events are sent to
+    // every App automatically; they are NOT gated by a permission and so
+    // can't be listed here. The webhook (when wired) will receive them
+    // anyway.
+    default_events: [],
     description:
       'sh1pt Actions Fleet — installs and updates GitHub Actions workflow packs across your repos via reviewable pull requests.',
   };
@@ -66,9 +70,9 @@ export default async function AdminGithubSetupPage({
   const base = await publicBaseUrl();
   const manifest = buildManifest(base);
 
-  // For a personal-account App. For org-owned, swap to:
-  //   https://github.com/organizations/<org>/settings/apps/new?state=...
-  const action = `https://github.com/settings/apps/new?state=${encodeURIComponent('sh1pt-actions-fleet-setup')}`;
+  // Org-owned App. Personal-account form lives at /settings/apps/new.
+  const ORG = 'profullstack';
+  const action = `https://github.com/organizations/${ORG}/settings/apps/new?state=${encodeURIComponent('sh1pt-actions-fleet-setup')}`;
 
   return (
     <main className="container" style={{ paddingTop: 80, paddingBottom: 80, maxWidth: 760 }}>
@@ -81,9 +85,9 @@ export default async function AdminGithubSetupPage({
         Register sh1pt as a GitHub App
       </h1>
       <p className="muted" style={{ marginTop: 8 }}>
-        One-time platform setup. Click <strong>Create GitHub App</strong> below; GitHub redirects
-        back here with the App&apos;s secrets — copy them into Railway and the integration is live
-        for every sh1pt user.
+        One-time platform setup. The App will be owned by the <code>{ORG}</code> org. Click{' '}
+        <strong>Create GitHub App</strong> below; GitHub redirects back here with the App&apos;s
+        secrets — copy them into Railway and the integration is live for every sh1pt user.
       </p>
 
       {error && (
@@ -112,8 +116,8 @@ export default async function AdminGithubSetupPage({
         <h2 style={{ marginTop: 0 }}>What gets created</h2>
         <ul style={{ marginTop: 12, fontSize: '0.9rem', lineHeight: 1.6 }}>
           <li>
-            App name <code>sh1pt Actions Fleet</code>, public on GitHub Marketplace
-            (installable by any account).
+            App name <code>sh1pt Actions Fleet</code>, owned by <code>{ORG}</code>, public on
+            GitHub (installable by any account).
           </li>
           <li>
             Permissions: <code>Contents: write</code>, <code>Pull requests: write</code>,{' '}
@@ -121,8 +125,8 @@ export default async function AdminGithubSetupPage({
             a PR, and read workflow runs.
           </li>
           <li>
-            Events: <code>installation</code>, <code>installation_repositories</code>. Webhook URL
-            set but inactive until you flip it on (later slice).
+            No default events subscribed (installation/repo events fire on every App regardless).
+            Webhook URL set but inactive until you flip it on later.
           </li>
           <li>
             Callback URLs derived from this request&apos;s host:
@@ -141,7 +145,7 @@ export default async function AdminGithubSetupPage({
       <form action={action} method="POST" style={{ marginTop: 16 }}>
         <input type="hidden" name="manifest" value={JSON.stringify(manifest)} />
         <button type="submit" className="btn" style={{ fontSize: '1rem' }}>
-          Create GitHub App →
+          Create GitHub App for {ORG} →
         </button>
       </form>
 
