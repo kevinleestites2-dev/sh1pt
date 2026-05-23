@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { loadBuiltinPacks } from '@profullstack/sh1pt-action-packs';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import ActionInstallPanel, { type ActionOption, type RepoOption } from './ActionInstallPanel';
 
 export const metadata = {
   title: 'GitHub installations — sh1pt',
@@ -82,6 +84,29 @@ export default async function GithubInstallationsPage({
     repos.push(repo);
     selectedReposByInstallation.set(repo.installation_pk, repos);
   }
+
+  const catalog = await loadBuiltinPacks();
+  const actions: ActionOption[] = [...catalog.values()]
+    .map((entry) => ({
+      id: entry.manifest.id,
+      name: entry.manifest.name,
+      description: entry.manifest.description,
+      version: entry.manifest.version,
+      categories: entry.manifest.categories,
+      destinations: entry.manifest.files.map((file) => file.destination),
+      secrets: entry.manifest.secrets.map((secret) => secret.name),
+    }))
+    .sort((a, b) => a.id.localeCompare(b.id));
+
+  const selectedRepos: RepoOption[] = ((selectedRepoRows ?? []) as SelectedRepo[])
+    .map((repo) => ({
+      installationPk: repo.installation_pk,
+      repoId: repo.github_repo_id,
+      fullName: repo.full_name,
+      private: repo.private,
+      archived: repo.archived,
+    }))
+    .sort((a, b) => a.fullName.localeCompare(b.fullName));
 
   const params = await searchParams;
   const installed = params.installed === '1';
@@ -235,6 +260,8 @@ export default async function GithubInstallationsPage({
           ))}
         </ul>
       )}
+
+      <ActionInstallPanel actions={actions} repos={selectedRepos} />
 
       <p style={{ marginTop: 32, fontSize: '0.85rem' }}>
         <Link href="/dashboard" className="muted">
