@@ -11,6 +11,23 @@ describe('built-in packs', () => {
     expect(entry?.manifest.files[0]?.destination).toBe('.github/workflows/ci.yml');
   });
 
+  it('loads the node-pnpm-test pack', async () => {
+    const catalog = await loadBuiltinPacks();
+    const entry = catalog.get('node-pnpm-test');
+    expect(entry).toBeDefined();
+    expect(entry?.manifest.name).toBe('Node pnpm Test');
+    expect(entry?.manifest.files[0]?.destination).toBe('.github/workflows/test.yml');
+  });
+
+  it('loads the vu1nz-scan pack', async () => {
+    const catalog = await loadBuiltinPacks();
+    const entry = catalog.get('vu1nz-scan');
+    expect(entry).toBeDefined();
+    expect(entry?.manifest.name).toBe('vu1nz Security Scan');
+    expect(entry?.manifest.files[0]?.destination).toBe('.github/workflows/vu1nz-scan.yml');
+    expect(entry?.manifest.secrets[0]?.name).toBe('ENV_FILE');
+  });
+
   it('renders node-pnpm-ci with default inputs', async () => {
     const catalog = await loadBuiltinPacks();
     const entry = catalog.get('node-pnpm-ci');
@@ -41,5 +58,41 @@ describe('built-in packs', () => {
     const file = result.files[0];
     expect(file?.content).toContain("node-version: '20'");
     expect(file?.content).toContain('pnpm run test:ci');
+  });
+
+  it('renders node-pnpm-test with default inputs', async () => {
+    const catalog = await loadBuiltinPacks();
+    const entry = catalog.get('node-pnpm-test');
+    if (!entry) throw new Error('node-pnpm-test not in catalog');
+    const result = await renderPack({
+      packDir: entry.packDir,
+      manifest: entry.manifest,
+      inputs: {},
+    });
+    const file = result.files[0];
+    expect(file?.destination).toBe('.github/workflows/test.yml');
+    expect(file?.content).toContain('branches: [master]');
+    expect(file?.content).toContain('node-version: 22');
+    expect(file?.content).toContain('version: 9.12.0');
+    expect(file?.content).toContain('pnpm test');
+    expect(file?.content).toContain('# Managed by sh1pt Actions Fleet');
+  });
+
+  it('renders vu1nz-scan with default inputs', async () => {
+    const catalog = await loadBuiltinPacks();
+    const entry = catalog.get('vu1nz-scan');
+    if (!entry) throw new Error('vu1nz-scan not in catalog');
+    const result = await renderPack({
+      packDir: entry.packDir,
+      manifest: entry.manifest,
+      inputs: {},
+    });
+    const file = result.files[0];
+    expect(file?.destination).toBe('.github/workflows/vu1nz-scan.yml');
+    expect(file?.content).toContain('python-version: "3.12"');
+    expect(file?.content).toContain('vu1nz review-pr main');
+    expect(file?.content).toContain('${{ secrets.ENV_FILE }}');
+    expect(file?.content).toContain('${{ github.repository }}');
+    expect(file?.content).toContain('# Managed by sh1pt Actions Fleet');
   });
 });
