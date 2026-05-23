@@ -16,6 +16,7 @@ export interface InstallationRow {
   account_type: 'User' | 'Organization';
   repository_selection: 'all' | 'selected';
   status: 'active' | 'suspended' | 'deleted';
+  permissions?: Record<string, string> | null;
 }
 
 export interface GithubRepoResult {
@@ -58,7 +59,7 @@ export async function authorizeInstallation(
   const { data: installation } = await admin
     .from('github_installations')
     .select(
-      'id, profile_id, installation_id, account_login, account_type, repository_selection, status',
+      'id, profile_id, installation_id, account_login, account_type, repository_selection, status, permissions',
     )
     .eq('id', installationPk)
     .eq('profile_id', profile.id)

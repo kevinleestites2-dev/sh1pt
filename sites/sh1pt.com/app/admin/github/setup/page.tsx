@@ -12,6 +12,7 @@ export const dynamic = 'force-dynamic';
 
 interface ManifestPermissions {
   contents: 'write';
+  workflows: 'write';
   pull_requests: 'write';
   metadata: 'read';
   actions: 'read';
@@ -46,6 +47,7 @@ function buildManifest(base: string) {
     public: true,
     default_permissions: {
       contents: 'write',
+      workflows: 'write',
       pull_requests: 'write',
       metadata: 'read',
       actions: 'read',
@@ -121,8 +123,9 @@ export default async function AdminGithubSetupPage({
           </li>
           <li>
             Permissions: <code>Contents: write</code>, <code>Pull requests: write</code>,{' '}
-            <code>Metadata: read</code>, <code>Actions: read</code>. Enough to push a branch, open
-            a PR, and read workflow runs.
+            <code>Workflows: write</code>, <code>Metadata: read</code>,{' '}
+            <code>Actions: read</code>. Enough to push a branch, open a PR, write workflow files,
+            and read workflow runs.
           </li>
           <li>
             No default events subscribed (installation/repo events fire on every App regardless).
