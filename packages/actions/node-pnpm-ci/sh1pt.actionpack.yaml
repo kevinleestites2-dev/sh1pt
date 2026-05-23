@@ -1,14 +1,13 @@
 schemaVersion: 1
-id: node-pnpm-test
-name: Node pnpm Test
-description: Node/pnpm test workflow based on sh1pt's own repository test workflow.
+id: node-pnpm-ci
+name: Node pnpm CI
+description: Least-privilege Node/TypeScript CI workflow using pnpm — install, typecheck, test.
 version: 1.0.0
 publisher: profullstack
 visibility: public
 license: MIT
 categories:
   - ci
-  - test
   - node
   - typescript
 compatibility:
@@ -19,6 +18,10 @@ compatibility:
     - typescript
   packageManagers:
     - pnpm
+  frameworks:
+    - next
+    - sveltekit
+    - react
 pricing:
   type: free
 inputs:
@@ -28,16 +31,16 @@ inputs:
     description: Node.js version to install.
   pnpmVersion:
     type: string
-    default: 9.12.0
-    description: pnpm version to install.
-  pushBranch:
-    type: string
-    default: master
-    description: Branch that should trigger push tests.
+    default: '9'
+    description: pnpm major version to install.
   installCommand:
     type: string
     default: pnpm install --frozen-lockfile
     description: Command to install dependencies.
+  typecheckCommand:
+    type: string
+    default: pnpm typecheck
+    description: Command to run typecheck.
   testCommand:
     type: string
     default: pnpm test
@@ -45,8 +48,8 @@ inputs:
 secrets: []
 repoVariables: []
 files:
-  - source: workflows/test.yml.hbs
-    destination: .github/workflows/test.yml
+  - source: workflow.yml
+    destination: .github/workflows/ci.yml
     mergeStrategy: replace-managed
 policies:
   installMode: pull-request

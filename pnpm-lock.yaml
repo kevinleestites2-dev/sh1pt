@@ -21,7 +21,7 @@ importers:
         specifier: ^2.1.4
         version: 2.1.9(@types/node@22.19.17)
 
-  packages/action-packs:
+  packages/actions:
     dependencies:
       '@profullstack/sh1pt-actions-fleet-core':
         specifier: workspace:^
@@ -816,7 +816,7 @@ importers:
     dependencies:
       '@profullstack/sh1pt-action-packs':
         specifier: workspace:^
-        version: link:../action-packs
+        version: link:../actions
       '@profullstack/sh1pt-actions-fleet-core':
         specifier: workspace:^
         version: link:../actions-fleet-core

@@ -33,7 +33,7 @@ secrets:
     required: true
 repoVariables: []
 files:
-  - source: workflows/vu1nz-scan.yml.hbs
+  - source: workflow.yml
     destination: .github/workflows/vu1nz-scan.yml
     mergeStrategy: replace-managed
 policies:

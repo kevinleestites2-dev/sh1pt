@@ -17,7 +17,7 @@ COPY . .
 # Replace the workspace file with a minimal one covering only sh1pt-dot-com's
 # transitive closure. Otherwise pnpm scans all 555 workspace packages, which
 # OOMs the build container.
-RUN printf 'packages:\n  - sites/sh1pt.com\n  - packages/core\n  - packages/cli\n  - packages/policy\n  - packages/openapi\n  - packages/actions-fleet-core\n  - packages/action-packs\n' > pnpm-workspace.yaml
+RUN printf 'packages:\n  - sites/sh1pt.com\n  - packages/core\n  - packages/cli\n  - packages/policy\n  - packages/openapi\n  - packages/actions-fleet-core\n  - packages/actions\n' > pnpm-workspace.yaml
 
 RUN pnpm install --frozen-lockfile=false
 RUN pnpm --filter sh1pt-dot-com build

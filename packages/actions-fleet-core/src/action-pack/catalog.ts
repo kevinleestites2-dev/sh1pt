@@ -15,6 +15,7 @@ export async function loadCatalog(rootDir: string): Promise<Map<string, CatalogE
   const children = await readdirSafe(rootDir);
   for (const child of children) {
     const packDir = join(rootDir, child);
+    if (!(await isDirectory(packDir))) continue;
     const manifestPath = join(packDir, MANIFEST_FILENAME);
     if (!(await isFile(manifestPath))) continue;
     const yamlText = await readFile(manifestPath, 'utf8');
@@ -49,6 +50,16 @@ async function isFile(path: string): Promise<boolean> {
     return s.isFile();
   } catch (err: unknown) {
     if (isErrnoException(err) && err.code === 'ENOENT') return false;
+    throw err;
+  }
+}
+
+async function isDirectory(path: string): Promise<boolean> {
+  try {
+    const s = await stat(path);
+    return s.isDirectory();
+  } catch (err: unknown) {
+    if (isErrnoException(err) && (err.code === 'ENOENT' || err.code === 'ENOTDIR')) return false;
     throw err;
   }
 }

@@ -4,9 +4,9 @@ import { loadCatalog, type CatalogEntry } from '@profullstack/sh1pt-actions-flee
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-// Resolved relative to the published source layout. In dev, src/ sits next to packs/.
-// At publish time `files` includes both `dist` and `packs`, so dist/ also sits next to packs/.
-export const BUILTIN_PACKS_DIR = resolve(here, '..', 'packs');
+// Resolved relative to the published package root. Action product directories
+// live directly under packages/actions so sh1pt Cloud can enumerate them.
+export const BUILTIN_PACKS_DIR = resolve(here, '..');
 
 export async function loadBuiltinPacks(): Promise<Map<string, CatalogEntry>> {
   return loadCatalog(BUILTIN_PACKS_DIR);

@@ -702,14 +702,19 @@ packages/actions-fleet-core/
   src/diff/plan.ts
   src/types.ts
 
-packages/action-packs/
-  packs/node-pnpm-ci/
-  packs/bun-ci/
-  packs/python-fastapi-ci/
-  packs/rust-ci/
-  packs/actions-hardening/
-  packs/codeql-baseline/
-  index.ts
+packages/actions/
+  node-pnpm-ci/
+    action.yml
+    workflow.yml
+    schema.json
+    README.md
+    sh1pt.actionpack.yaml
+  bun-ci/
+  python-fastapi-ci/
+  rust-ci/
+  actions-hardening/
+  codeql-baseline/
+  src/index.ts
 
 packages/vcs/github/
   src/actions-fleet/list-repos.ts
@@ -1122,12 +1127,12 @@ GET    /api/actions-fleet/repos?installationId=...
 POST   /api/actions-fleet/repos/:repoId/scan
 GET    /api/actions-fleet/repos/:repoId/scans/latest
 GET    /api/actions-fleet/repos/:repoId/findings
-GET    /api/action-packs
-GET    /api/action-packs/:packId
-POST   /api/action-packs/:packId/plan
-POST   /api/action-packs/:packId/install
-POST   /api/action-packs/:packId/sync
-POST   /api/action-packs/publish
+GET    /api/actions
+GET    /api/actions/:actionId
+POST   /api/actions/:actionId/plan
+POST   /api/actions/:actionId/install
+POST   /api/actions/:actionId/sync
+POST   /api/actions/publish
 POST   /api/github/webhooks
 ```
 
@@ -1308,7 +1313,7 @@ Acceptance:
 
 Acceptance:
 
-- Built-in packs load from `packages/action-packs` or repo-equivalent path.
+- Built-in actions load from `packages/actions`, with each action as a top-level product directory.
 - `list` and `show` commands display pack metadata.
 
 #### Issue 3 — Add deterministic pack renderer
