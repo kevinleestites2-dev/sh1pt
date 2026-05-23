@@ -4,6 +4,7 @@ import './globals.css';
 import NavLink from './components/NavLink';
 import RobautoPixel from './components/RobautoPixel';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import Script from "next/script";
 
 export const metadata = {
   title: 'sh1pt — Build. Promote. Scale. Iterate…',
@@ -83,6 +84,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <a href="/blog">Blog</a> · <a href="/investors">Investors</a> · <a href="/deck">Deck</a> · <a href="/waitlist">Waitlist</a> · <a href="https://github.com/profullstack/sh1pt">Source</a>
           </div>
         </footer>
+              <Script data-site="09d382f0-1b98-4d28-b360-78eaf4e030f2" src="https://crawlproof.com/stats.js" strategy="afterInteractive" />
       </body>
     </html>
   );
