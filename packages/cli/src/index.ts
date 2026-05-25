@@ -1,6 +1,8 @@
 import { Command } from 'commander';
 import kleur from 'kleur';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+import { logError } from './lib/logger.js';
 import { buildCmd } from './commands/build.js';
 import { createActionsCmd } from './commands/build-actions.js';
 import { promoteCmd } from './commands/promote.js';
@@ -66,7 +68,15 @@ for (const cat of CATEGORIES) {
   program.addCommand(makeCategoryCmd(cat));
 }
 
-program.parseAsync(process.argv).catch((err) => {
-  console.error(kleur.red(`error: ${err.message}`));
-  process.exit(1);
-});
+export function run(argv = process.argv.slice(2)): Promise<void> {
+  return program.parseAsync(['node', 'sh1pt', ...argv]).then(() => undefined);
+}
+
+const isDirectExecution = process.argv[1] === fileURLToPath(import.meta.url);
+if (isDirectExecution) {
+  run().catch((err) => {
+    const message = err instanceof Error ? err.message : String(err);
+    logError(kleur.red(`error: ${message}`));
+    process.exit(1);
+  });
+}
