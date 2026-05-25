@@ -7,6 +7,12 @@ describe('actions command aliases', () => {
     expect(showCmd).toBeDefined();
     expect(showCmd?.aliases()).toContain('info');
   });
+
+
+  it('supports a search subcommand for pack discovery', () => {
+    const searchCmd = actionsCmd.commands.find((c) => c.name() === 'search');
+    expect(searchCmd).toBeDefined();
+  });
 });
 
 describe('auditWorkflowContent', () => {
