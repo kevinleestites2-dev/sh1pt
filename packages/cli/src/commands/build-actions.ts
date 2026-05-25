@@ -145,7 +145,7 @@ export function auditWorkflowContent(file: string, content: string): WorkflowAud
     runBodies.push(m[1] ?? '');
   }
   // Block: `- run: |` or `- run: >` followed by indented lines
-  for (const m of content.matchAll(/^\s*-?\s*run:\s*[|>][^\n]*\n((?:[ \t]+[^\n]*\n?)*)/gm)) {
+  for (const m of content.matchAll(/^\s*-?\s*run:\s*[|>][-+]?\d*[^\n]*\n((?:[ \t]+[^\n]*\n?)*)/gm)) {
     runBodies.push(m[1] ?? '');
   }
   if (runBodies.some((body) => secretsInRunRe.test(body))) {
@@ -158,6 +158,7 @@ export function auditWorkflowContent(file: string, content: string): WorkflowAud
     'actions', 'github', 'docker', 'hashicorp', 'azure',
     'google-github-actions', 'aws-actions', 'slsa-framework',
   ]);
+  const reportedThirdParty = new Set<string>();
   for (const match of content.matchAll(/uses:\s*([A-Za-z0-9_.-]+)\/([^\s@]+)@([^\s]+)/g)) {
     const owner = match[1] ?? '';
     const actionPath = match[2] ?? '';
@@ -167,11 +168,15 @@ export function auditWorkflowContent(file: string, content: string): WorkflowAud
     if (/^(main|master)$/.test(ref)) continue;
     // Flag if not pinned to a full SHA-256 (40-char hex)
     if (!/^[0-9a-f]{40}$/i.test(ref)) {
-      add(
-        'third-party-action',
-        'low',
-        `action ${owner}/${actionPath} is from a third-party publisher — consider pinning to a SHA digest`,
-      );
+      const key = `${owner}/${actionPath}`;
+      if (!reportedThirdParty.has(key)) {
+        reportedThirdParty.add(key);
+        add(
+          'third-party-action',
+          'low',
+          `action ${owner}/${actionPath} is from a third-party publisher — consider pinning to a SHA digest`,
+        );
+      }
     }
   }
 
