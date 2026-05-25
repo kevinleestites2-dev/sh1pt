@@ -8,6 +8,7 @@ import {
   openPackPullRequest,
   planDiff,
   renderPack,
+  renderPlanPreview,
   type CatalogEntry,
   type DiffPlan,
   type OpenPrOutcome,
@@ -56,6 +57,24 @@ function printStatusLine(destination: string, statusKind: string, reason?: strin
   const tag = colorize(statusKind.padEnd(20));
   const suffix = reason ? kleur.dim(` — ${reason}`) : '';
   console.log(`  ${tag} ${destination}${suffix}`);
+}
+
+function colorizeUnifiedDiff(text: string): void {
+  for (const line of text.split('\n')) {
+    if (line.startsWith('---') || line.startsWith('+++')) {
+      console.log(kleur.bold(line));
+    } else if (line.startsWith('-')) {
+      console.log(kleur.red(line));
+    } else if (line.startsWith('+')) {
+      console.log(kleur.green(line));
+    } else if (line.startsWith('@@')) {
+      console.log(kleur.cyan(line));
+    } else if (line.startsWith('#')) {
+      console.log(kleur.yellow(line));
+    } else {
+      console.log(line);
+    }
+  }
 }
 
 function printCatalogRows(rows: Array<{
@@ -318,8 +337,9 @@ export function createActionsCmd(): Command {
     .argument('<pack-id>', 'pack id')
     .option('-r, --repo <dir>', 'target repo directory', '.')
     .option('-i, --input <pair...>', 'pack input as key=value (repeatable)')
+    .option('--diff', 'show a unified diff of all file changes')
     .option('--json', 'emit machine-readable JSON')
-    .action(async (packId: string, opts: { repo: string; input?: string[]; json?: boolean }) => {
+    .action(async (packId: string, opts: { repo: string; input?: string[]; diff?: boolean; json?: boolean }) => {
       const inputs = parseInputPairs(opts.input);
       const plan = await buildPlan(packId, opts.repo, inputs);
 
@@ -332,6 +352,16 @@ export function createActionsCmd(): Command {
       console.log();
       for (const file of plan.files) {
         printStatusLine(file.destination, file.status.kind);
+      }
+
+      if (opts.diff) {
+        const preview = renderPlanPreview(plan);
+        if (preview.trim()) {
+          console.log();
+          console.log(kleur.bold('Diff preview:'));
+          console.log();
+          colorizeUnifiedDiff(preview);
+        }
       }
     });
 

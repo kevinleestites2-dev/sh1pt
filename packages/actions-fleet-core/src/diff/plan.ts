@@ -17,6 +17,8 @@ export interface PlannedFileDiff {
   mergeStrategy: PlannedFile['mergeStrategy'];
   newContent: string;
   newHash: string;
+  /** The content of the file as it exists on disk (or null if the file does not exist). */
+  existingContent: string | null;
   status: DiffStatus;
 }
 
@@ -170,6 +172,7 @@ export async function planDiff(options: PlanDiffOptions): Promise<DiffPlan> {
       mergeStrategy: file.mergeStrategy,
       newContent: file.content,
       newHash: file.hash,
+      existingContent: existing,
       status,
     });
   }
