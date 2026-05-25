@@ -1,0 +1,29 @@
+[
+  {
+    "name": "vu1nz-scan",
+    "publisher": "profullstack",
+    "version": "1.0.0",
+    "description": "AI-powered pull request vulnerability scanning with vu1nz.",
+    "trustLevel": "verified",
+    "category": "security",
+    "path": "packages/actions/vu1nz-scan/sh1pt.actionpack.yaml"
+  },
+  {
+    "name": "node-pnpm-ci",
+    "publisher": "profullstack",
+    "version": "1.0.0",
+    "description": "Least-privilege Node/TypeScript CI workflow using pnpm.",
+    "trustLevel": "official",
+    "category": "ci",
+    "path": "packages/actions/node-pnpm-ci/sh1pt.actionpack.yaml"
+  },
+  {
+    "name": "node-pnpm-test",
+    "publisher": "profullstack",
+    "version": "1.0.0",
+    "description": "Node/pnpm test workflow based on sh1pt's own repository test workflow.",
+    "trustLevel": "official",
+    "category": "test",
+    "path": "packages/actions/node-pnpm-test/sh1pt.actionpack.yaml"
+  }
+]

@@ -829,6 +829,9 @@ importers:
       '@profullstack/sh1pt-policy':
         specifier: workspace:^
         version: link:../policy
+      '@profullstack/sh1pt-registry':
+        specifier: workspace:^
+        version: link:../registry
       commander:
         specifier: ^12.1.0
         version: 12.1.0
@@ -1319,6 +1322,8 @@ importers:
       '@profullstack/sh1pt-core':
         specifier: workspace:*
         version: link:../../core
+
+  packages/registry: {}
 
   packages/sdk: {}
 

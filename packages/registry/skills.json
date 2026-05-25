@@ -1,0 +1,11 @@
+[
+  {
+    "name": "modern-web",
+    "publisher": "profullstack",
+    "version": "0.1.0",
+    "description": "Install reviewable coding-agent guidance for safe, modern web app changes.",
+    "trustLevel": "verified",
+    "category": "web",
+    "path": "packages/cli/skills/modern-web/sh1pt.skill.json"
+  }
+]

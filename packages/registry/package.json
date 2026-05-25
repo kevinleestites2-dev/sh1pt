@@ -1,0 +1,39 @@
+{
+  "name": "@profullstack/sh1pt-registry",
+  "version": "0.0.1",
+  "description": "Local registry index files (actions, skills, packs) for the sh1pt CLI.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/profullstack/sh1pt.git",
+    "directory": "packages/registry"
+  },
+  "homepage": "https://sh1pt.com",
+  "bugs": "https://github.com/profullstack/sh1pt/issues",
+  "keywords": [
+    "sh1pt",
+    "registry",
+    "actions",
+    "skills",
+    "packs"
+  ],
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "files": [
+    "dist",
+    "actions.json",
+    "skills.json",
+    "packs.json"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepublishOnly": "pnpm build"
+  }
+}
