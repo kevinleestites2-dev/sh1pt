@@ -459,4 +459,4 @@ function printRemoteOutcome(owner: string, repo: string, outcome: OpenPrOutcome)
   }
 }
 
-export const actionsCmd = createActionsCmd();
+
