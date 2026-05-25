@@ -8,6 +8,7 @@ import {
   openPackPullRequest,
   planDiff,
   renderPack,
+  type ActionPackManifest,
   type CatalogEntry,
   type DiffPlan,
   type OpenPrOutcome,
@@ -58,10 +59,27 @@ function printStatusLine(destination: string, statusKind: string, reason?: strin
   console.log(`  ${tag} ${destination}${suffix}`);
 }
 
+export type TrustLevel = 'high' | 'medium' | 'low';
+
+export function deriveTrustLevel(security: ActionPackManifest['security']): TrustLevel {
+  if (
+    security.leastPrivilegePermissions &&
+    security.pinThirdPartyActions === 'required' &&
+    !security.allowPullRequestTarget
+  ) {
+    return 'high';
+  }
+  if (security.leastPrivilegePermissions && !security.allowPullRequestTarget) {
+    return 'medium';
+  }
+  return 'low';
+}
+
 function printCatalogRows(rows: Array<{
   id: string;
   name: string;
   version: string;
+  publisher: string;
   categories: string[];
   description: string;
 }>): void {
@@ -71,7 +89,7 @@ function printCatalogRows(rows: Array<{
   }
 
   for (const row of rows) {
-    console.log(`${kleur.bold(row.id)} ${kleur.dim(`v${row.version}`)}`);
+    console.log(`${kleur.bold(row.id)} ${kleur.dim(`v${row.version}`)}  ${kleur.dim(`by ${row.publisher}`)}`);
     console.log(`  ${row.name} — ${row.description}`);
     console.log(`  ${kleur.dim('categories:')} ${row.categories.join(', ')}`);
     console.log();
@@ -82,6 +100,7 @@ async function catalogRows(query?: string): Promise<Array<{
   id: string;
   name: string;
   version: string;
+  publisher: string;
   categories: string[];
   description: string;
 }>> {
@@ -92,12 +111,13 @@ async function catalogRows(query?: string): Promise<Array<{
       id: e.manifest.id,
       name: e.manifest.name,
       version: e.manifest.version,
+      publisher: e.manifest.publisher,
       categories: e.manifest.categories,
       description: e.manifest.description,
     }))
     .filter((row) => {
       if (!needle) return true;
-      return [row.id, row.name, row.description, ...row.categories]
+      return [row.id, row.name, row.description, row.publisher, ...row.categories]
         .some((value) => value.toLowerCase().includes(needle));
     })
     .sort((a, b) => a.id.localeCompare(b.id));
@@ -216,20 +236,51 @@ export function createActionsCmd(): Command {
     .argument('<pack-id>', 'pack id, e.g. node-pnpm-ci')
     .option('--json', 'emit machine-readable JSON')
     .action(async (packId: string, opts: { json?: boolean }) => {
-      const { manifest } = await getCatalogEntry(packId);
+      const { manifest, packDir } = await getCatalogEntry(packId);
       if (opts.json) {
-        console.log(JSON.stringify(manifest, null, 2));
+        console.log(JSON.stringify({ ...manifest, packDir, trustLevel: deriveTrustLevel(manifest.security) }, null, 2));
         return;
       }
+
+      const trustLevel = deriveTrustLevel(manifest.security);
+      const trustColor = trustLevel === 'high' ? kleur.green : trustLevel === 'medium' ? kleur.yellow : kleur.red;
 
       console.log(kleur.bold(`${manifest.name} (${manifest.id}@${manifest.version})`));
       console.log(manifest.description);
       console.log();
-      console.log(`${kleur.dim('publisher:')}   ${manifest.publisher}`);
-      console.log(`${kleur.dim('visibility:')}  ${manifest.visibility}`);
-      console.log(`${kleur.dim('license:')}     ${manifest.license}`);
-      console.log(`${kleur.dim('categories:')}  ${manifest.categories.join(', ')}`);
-      console.log(`${kleur.dim('pricing:')}     ${manifest.pricing.type}`);
+      console.log(`${kleur.dim('publisher:')}    ${manifest.publisher}`);
+      console.log(`${kleur.dim('visibility:')}   ${manifest.visibility}`);
+      console.log(`${kleur.dim('license:')}      ${manifest.license}`);
+      console.log(`${kleur.dim('categories:')}   ${manifest.categories.join(', ')}`);
+      console.log(`${kleur.dim('pricing:')}      ${manifest.pricing.type}`);
+      console.log(`${kleur.dim('trust level:')}  ${trustColor(trustLevel)}`);
+      console.log(`${kleur.dim('pack path:')}    ${packDir}`);
+
+      console.log();
+      console.log(kleur.bold('Compatibility'));
+      console.log(`  ${kleur.dim('providers:')} ${manifest.compatibility.providers.join(', ')}`);
+      if (manifest.compatibility.languages?.length) {
+        console.log(`  ${kleur.dim('languages:')} ${manifest.compatibility.languages.join(', ')}`);
+      }
+      if (manifest.compatibility.packageManagers?.length) {
+        console.log(`  ${kleur.dim('package managers:')} ${manifest.compatibility.packageManagers.join(', ')}`);
+      }
+      if (manifest.compatibility.frameworks?.length) {
+        console.log(`  ${kleur.dim('frameworks:')} ${manifest.compatibility.frameworks.join(', ')}`);
+      }
+
+      console.log();
+      console.log(kleur.bold('Policies'));
+      console.log(`  ${kleur.dim('install mode:')}     ${manifest.policies.installMode}`);
+      console.log(`  ${kleur.dim('managed comment:')}  ${manifest.policies.managedComment}`);
+      console.log(`  ${kleur.dim('requires review:')}  ${manifest.policies.requiresReview}`);
+
+      console.log();
+      console.log(kleur.bold('Security'));
+      console.log(`  ${kleur.dim('least-privilege permissions:')}  ${manifest.security.leastPrivilegePermissions}`);
+      console.log(`  ${kleur.dim('pin third-party actions:')}      ${manifest.security.pinThirdPartyActions}`);
+      console.log(`  ${kleur.dim('allow pull-request-target:')}    ${manifest.security.allowPullRequestTarget}`);
+      console.log(`  ${kleur.dim('default timeout (min):')}        ${manifest.security.defaultTimeoutMinutes}`);
 
       if (Object.keys(manifest.inputs).length > 0) {
         console.log();
