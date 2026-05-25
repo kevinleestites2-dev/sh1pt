@@ -243,7 +243,12 @@ export function createActionsCmd(): Command {
       }
 
       const trustLevel = deriveTrustLevel(manifest.security);
-      const trustColor = trustLevel === 'high' ? kleur.green : trustLevel === 'medium' ? kleur.yellow : kleur.red;
+      const trustColors: Record<TrustLevel, (s: string) => string> = {
+        high: kleur.green,
+        medium: kleur.yellow,
+        low: kleur.red,
+      };
+      const trustColor = trustColors[trustLevel];
 
       console.log(kleur.bold(`${manifest.name} (${manifest.id}@${manifest.version})`));
       console.log(manifest.description);
