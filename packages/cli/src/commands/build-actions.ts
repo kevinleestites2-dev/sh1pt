@@ -458,5 +458,3 @@ function printRemoteOutcome(owner: string, repo: string, outcome: OpenPrOutcome)
       break;
   }
 }
-
-
