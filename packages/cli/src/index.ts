@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import kleur from 'kleur';
 import { createRequire } from 'node:module';
+import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { logError } from './lib/logger.js';
 import { buildCmd } from './commands/build.js';
@@ -68,11 +69,13 @@ for (const cat of CATEGORIES) {
   program.addCommand(makeCategoryCmd(cat));
 }
 
-export function run(argv = process.argv.slice(2)): Promise<void> {
-  return program.parseAsync(['node', 'sh1pt', ...argv]).then(() => undefined);
+export async function run(argv = process.argv.slice(2)): Promise<void> {
+  await program.parseAsync(argv, { from: 'user' });
 }
 
-const isDirectExecution = process.argv[1] === fileURLToPath(import.meta.url);
+const invokedPath = process.argv[1] ? resolve(process.argv[1]) : '';
+const modulePath = fileURLToPath(import.meta.url);
+const isDirectExecution = invokedPath !== '' && invokedPath === modulePath;
 if (isDirectExecution) {
   run().catch((err) => {
     const message = err instanceof Error ? err.message : String(err);
