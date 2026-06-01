@@ -93,7 +93,7 @@ function windowsCommandLine(
   args: string[],
   env: NodeJS.ProcessEnv | undefined,
 ): { command: string; env: NodeJS.ProcessEnv } {
-  const nextEnv: NodeJS.ProcessEnv = { ...env };
+  const nextEnv = { ...env } as NodeJS.ProcessEnv;
   const argRefs = args.map((arg, index) => {
     const name = `SH1PT_EXEC_ARG_${index}`;
     nextEnv[name] = windowsEnvArg(arg);
