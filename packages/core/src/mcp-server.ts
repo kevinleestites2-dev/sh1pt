@@ -41,6 +41,18 @@ export interface StdioMcpDefaults {
   timeoutMs?: number;
 }
 
+export interface HttpMcpConfig {
+  url?: string;
+  headers?: Record<string, string>;
+  timeoutMs?: number;
+}
+
+export interface HttpMcpDefaults {
+  url: string;
+  label?: string;
+  timeoutMs?: number;
+}
+
 export interface McpServer<Config = unknown> {
   id: string;
   label: string;
@@ -206,6 +218,82 @@ export async function callStdioMcpTool(
     child.stdin.end();
     if (!child.killed) child.kill();
   }
+}
+
+export async function callHttpMcpTool(
+  ctx: McpServerContext,
+  call: McpToolCall,
+  config: HttpMcpConfig,
+  defaults: HttpMcpDefaults,
+): Promise<McpToolResult> {
+  const url = config.url ?? defaults.url;
+  const label = defaults.label ?? url;
+  ctx.log(`mcp http - ${label} - tools/call ${call.name}`);
+
+  if (ctx.dryRun) {
+    return {
+      content: [{ type: 'text', text: `[dry-run] would call MCP tool ${call.name} via ${url}` }],
+      raw: { dryRun: true, url, tool: call.name },
+    };
+  }
+
+  const timeoutMs = config.timeoutMs ?? defaults.timeoutMs ?? 30_000;
+  const extraHeaders = config.headers ?? {};
+
+  const postJson = async (id: number, method: string, params?: unknown): Promise<{ result?: unknown; headers: Headers }> => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream', ...extraHeaders },
+        body: JSON.stringify({ jsonrpc: '2.0', id, method, ...(params !== undefined ? { params } : {}) }),
+        signal: controller.signal,
+      });
+    } catch (err) {
+      throw new Error(`MCP HTTP fetch error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      clearTimeout(timer);
+    }
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`MCP HTTP ${res.status}: ${body.slice(0, 200)}`);
+    }
+    const ct = res.headers.get('content-type') ?? '';
+    const result = ct.includes('text/event-stream')
+      ? parseSseJsonRpc(await res.text())
+      : (await res.json() as JsonRpcResponse).result;
+    return { result, headers: res.headers };
+  };
+
+  const initResp = await postJson(1, 'initialize', {
+    protocolVersion: '2025-03-26',
+    capabilities: {},
+    clientInfo: { name: 'sh1pt', version: '0.1.0' },
+  });
+  const sessionId = initResp.headers.get('mcp-session-id');
+  if (sessionId) extraHeaders['mcp-session-id'] = sessionId;
+
+  const callResp = await postJson(2, 'tools/call', { name: call.name, arguments: call.arguments ?? {} });
+  return normalizeToolResult(callResp.result);
+}
+
+function parseSseJsonRpc(text: string): unknown {
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith('data: ')) continue;
+    const data = trimmed.slice(6);
+    if (data === '[DONE]') continue;
+    try {
+      const parsed = JSON.parse(data) as JsonRpcResponse;
+      if (parsed.error) throw new Error(`MCP error ${parsed.error.code}: ${parsed.error.message}`);
+      if (parsed.result !== undefined) return parsed.result;
+    } catch (e) {
+      if (e instanceof Error && e.message.startsWith('MCP error')) throw e;
+    }
+  }
+  return null;
 }
 
 function normalizeToolResult(result: unknown): McpToolResult {
