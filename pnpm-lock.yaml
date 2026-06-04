@@ -159,6 +159,30 @@ importers:
         specifier: workspace:*
         version: link:../../core
 
+  packages/agent-providers/cerebras:
+    dependencies:
+      '@profullstack/sh1pt-agent-provider-shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/agent-providers/deepseek:
+    dependencies:
+      '@profullstack/sh1pt-agent-provider-shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/agent-providers/groq:
+    dependencies:
+      '@profullstack/sh1pt-agent-provider-shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/agent-providers/mistral:
+    dependencies:
+      '@profullstack/sh1pt-agent-provider-shared':
+        specifier: workspace:*
+        version: link:../shared
+
   packages/agent-providers/opencode:
     dependencies:
       '@profullstack/sh1pt-agent-provider-shared':
@@ -172,6 +196,12 @@ importers:
         version: link:../shared
 
   packages/agent-providers/shared: {}
+
+  packages/agent-providers/xai:
+    dependencies:
+      '@profullstack/sh1pt-agent-provider-shared':
+        specifier: workspace:*
+        version: link:../shared
 
   packages/agents/claude:
     dependencies:
