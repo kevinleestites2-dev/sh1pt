@@ -86,12 +86,12 @@ describe('browser-chrome target adapter', () => {
     expect(result).toEqual({ artifact });
   });
 
-  it('keeps extension IDs with path separators inside the output directory', async () => {
+  it('rejects Chrome extension IDs that are blank or not URL path segments', async () => {
     const outDir = await mkdtemp(join(tmpdir(), 'sh1pt-chrome-out-'));
     const projectDir = await mkdtemp(join(tmpdir(), 'sh1pt-chrome-project-'));
     tempDirs.push(outDir, projectDir);
 
-    const result = await adapter.build(fakeBuildContext({
+    await expect(adapter.build(fakeBuildContext({
       outDir,
       projectDir,
       version: '1.2.3',
@@ -99,11 +99,34 @@ describe('browser-chrome target adapter', () => {
     }) as any, {
       extensionId: '../chrome-extension',
       sourceDir: 'extension-dist',
-    });
+    })).rejects.toThrow('extensionId must be a single URL path segment');
 
-    const plan = JSON.parse(await readFile(result.artifact, 'utf-8'));
-    expect(plan.extensionId).toBe('../chrome-extension');
-    expect(plan.artifact).toBe(join(outDir, 'chrome-extension-1.2.3.zip'));
-    expect(plan.command).toEqual(['zip', '-r', join(outDir, 'chrome-extension-1.2.3.zip'), '.']);
+    await expect(adapter.build(fakeBuildContext({
+      outDir,
+      projectDir,
+      version: '1.2.3',
+      dryRun: true,
+    }) as any, {
+      extensionId: '   ',
+      sourceDir: 'extension-dist',
+    })).rejects.toThrow('browser-chrome requires extensionId');
+
+    expect(execMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects blank source directories before packaging', async () => {
+    const outDir = await mkdtemp(join(tmpdir(), 'sh1pt-chrome-out-'));
+    const projectDir = await mkdtemp(join(tmpdir(), 'sh1pt-chrome-project-'));
+    tempDirs.push(outDir, projectDir);
+
+    await expect(adapter.build(fakeBuildContext({
+      outDir,
+      projectDir,
+      version: '1.2.3',
+      dryRun: true,
+    }) as any, {
+      extensionId: 'chrome-extension',
+      sourceDir: '   ',
+    })).rejects.toThrow('browser-chrome requires sourceDir');
   });
 });

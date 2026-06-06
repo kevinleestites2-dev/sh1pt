@@ -8,8 +8,28 @@ interface Config {
   deployPercent?: number;
 }
 
+function requireText(value: string | undefined, name: string): string {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`browser-chrome requires ${name}`);
+  }
+  return value.trim();
+}
+
+function optionalText(value: string | undefined, name: string): string | undefined {
+  if (value === undefined) return undefined;
+  return requireText(value, name);
+}
+
+function requireExtensionId(value: string | undefined): string {
+  const extensionId = requireText(value, 'extensionId');
+  if (/[\\/?#\x00-\x1F\x7F]/.test(extensionId)) {
+    throw new Error('browser-chrome extensionId must be a single URL path segment');
+  }
+  return extensionId;
+}
+
 function sourceDir(ctx: { projectDir: string }, config: Config): string {
-  const dir = config.sourceDir ?? 'dist';
+  const dir = optionalText(config.sourceDir, 'sourceDir') ?? 'dist';
   return isAbsolute(dir) ? dir : join(ctx.projectDir, dir);
 }
 
@@ -21,15 +41,16 @@ function safeFileStem(value: string): string {
 }
 
 function packageArtifact(ctx: { outDir: string; version: string }, config: Config): string {
-  return join(ctx.outDir, `${safeFileStem(config.extensionId)}-${safeFileStem(ctx.version)}.zip`);
+  return join(ctx.outDir, `${safeFileStem(requireExtensionId(config.extensionId))}-${safeFileStem(ctx.version)}.zip`);
 }
 
 function packagePlan(ctx: { projectDir: string; outDir: string; version: string }, config: Config) {
+  const extensionId = requireExtensionId(config.extensionId);
   const src = sourceDir(ctx, config);
   const artifact = packageArtifact(ctx, config);
   return {
     provider: 'chrome-web-store',
-    extensionId: config.extensionId,
+    extensionId,
     version: ctx.version,
     sourceDir: src,
     artifact,
@@ -43,10 +64,11 @@ export default defineTarget<Config>({
   kind: 'browser-ext',
   label: 'Chrome Web Store',
   async build(ctx, config) {
+    const extensionId = requireExtensionId(config.extensionId);
     const src = sourceDir(ctx, config);
     const zipPath = packageArtifact(ctx, config);
 
-    ctx.log(`pack Chrome extension from ${src} for v${ctx.version}`);
+    ctx.log(`pack Chrome extension ${extensionId} from ${src} for v${ctx.version}`);
 
     if (ctx.dryRun) {
       const planPath = join(ctx.outDir, 'chrome-package.json');
@@ -78,12 +100,13 @@ export default defineTarget<Config>({
     return { artifact: zipPath };
   },
   async ship(ctx, config) {
-    ctx.log(`upload + publish extension ${config.extensionId}`);
+    const extensionId = requireExtensionId(config.extensionId);
+    ctx.log(`upload + publish extension ${extensionId}`);
     if (ctx.dryRun) return { id: 'dry-run' };
     // TODO: Chrome Web Store Publish API w/ refresh token
     return {
-      id: `${config.extensionId}@${ctx.version}`,
-      url: `https://chrome.google.com/webstore/detail/${config.extensionId}`,
+      id: `${extensionId}@${ctx.version}`,
+      url: `https://chrome.google.com/webstore/detail/${extensionId}`,
     };
   },
 
