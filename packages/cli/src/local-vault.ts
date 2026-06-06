@@ -28,6 +28,15 @@ export function localVaultPath(): string {
   return path.join(configDir(), 'secrets.json');
 }
 
+function normalizeSecrets(value: unknown): Record<string, string> {
+  const secrets: Record<string, string> = {};
+  if (!value || typeof value !== 'object') return secrets;
+  for (const [key, secret] of Object.entries(value)) {
+    if (typeof secret === 'string') secrets[key] = secret;
+  }
+  return secrets;
+}
+
 // Sync read for SetupContext init. Returns empty map on missing file.
 // Warns once if the file is world/group-readable.
 export function loadLocalVaultSync(): Map<string, string> {
@@ -43,10 +52,8 @@ export function loadLocalVaultSync(): Map<string, string> {
     }
     const raw = readFileSync(file, 'utf8');
     const parsed = JSON.parse(raw) as Partial<LocalVault>;
-    if (parsed.secrets && typeof parsed.secrets === 'object') {
-      for (const [k, v] of Object.entries(parsed.secrets)) {
-        if (typeof v === 'string') out.set(k, v);
-      }
+    for (const [k, v] of Object.entries(normalizeSecrets(parsed.secrets))) {
+      out.set(k, v);
     }
   } catch (err) {
     const code = (err as NodeJS.ErrnoException).code;
@@ -63,7 +70,7 @@ async function readVault(): Promise<LocalVault> {
     const parsed = JSON.parse(raw) as Partial<LocalVault>;
     return {
       version: typeof parsed.version === 'number' ? parsed.version : VAULT_VERSION,
-      secrets: parsed.secrets && typeof parsed.secrets === 'object' ? { ...parsed.secrets } : {},
+      secrets: normalizeSecrets(parsed.secrets),
     };
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
