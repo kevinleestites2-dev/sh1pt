@@ -23,6 +23,12 @@ function debVersion(version: string): string {
   return version.replace(/^v/, '');
 }
 
+function assertPackageName(packageName: string): void {
+  if (!/^[a-z0-9][a-z0-9+.-]+$/.test(packageName)) {
+    throw new Error(`packageName must be a valid Debian package name, got "${packageName}"`);
+  }
+}
+
 function packageFileName(config: Config, version: string, arch: string): string {
   return config.packageFilename
     ? config.packageFilename
@@ -84,6 +90,7 @@ export default defineTarget<Config>({
   kind: 'package-manager',
   label: 'apt repo / PPA',
   async build(ctx, config) {
+    assertPackageName(config.packageName);
     const arches = config.architecture ?? ['amd64', 'arm64'];
     const dist = config.distribution ?? 'jammy';
     const component = config.component ?? 'main';
@@ -102,6 +109,7 @@ export default defineTarget<Config>({
     return { artifact: controlPath };
   },
   async ship(ctx, config) {
+    assertPackageName(config.packageName);
     const dist = config.distribution ?? 'jammy';
     const component = config.component ?? 'main';
     ctx.log(`publish ${config.packageName}@${ctx.version} to apt repo (${dist}/${component})`);

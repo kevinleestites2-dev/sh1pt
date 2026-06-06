@@ -65,4 +65,41 @@ describe('apt package metadata generation', () => {
       packageName: 'myapp',
     })).resolves.toEqual({ id: 'dry-run' });
   });
+
+  it('accepts Debian package names with allowed special characters', async () => {
+    for (const packageName of ['libfoo-bar', 'g++', 'python3.10']) {
+      const outDir = await mkdtemp(join(tmpdir(), 'sh1pt-apt-'));
+      tempDirs.push(outDir);
+
+      await expect(adapter.build(fakeBuildContext({
+        outDir,
+        version: '1.2.3',
+      }) as any, {
+        packageName,
+      })).resolves.toEqual({ artifact: join(outDir, 'debian', 'control') });
+    }
+  });
+
+  it('rejects invalid Debian package names before writing metadata artifacts', async () => {
+    const outDir = await mkdtemp(join(tmpdir(), 'sh1pt-apt-'));
+    tempDirs.push(outDir);
+
+    for (const packageName of ['../escape', 'Bad Name', 'UpperCase', 'a']) {
+      await expect(adapter.build(fakeBuildContext({
+        outDir,
+        version: '1.2.3',
+      }) as any, {
+        packageName,
+      })).rejects.toThrow('packageName');
+    }
+  });
+
+  it('rejects invalid Debian package names before shipping', async () => {
+    await expect(adapter.ship(fakeShipContext({
+      version: '1.2.3',
+      dryRun: true,
+    }) as any, {
+      packageName: '../escape',
+    })).rejects.toThrow('packageName');
+  });
 });
