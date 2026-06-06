@@ -9,6 +9,8 @@ interface Config {
   submit?: boolean;
 }
 
+const PLATFORMS = ['ios', 'android', 'all'] as const;
+
 interface EasCommand {
   command: 'eas';
   args: string[];
@@ -40,7 +42,11 @@ interface ExpoShipPlan {
 }
 
 function platform(config: Config): 'ios' | 'android' | 'all' {
-  return config.platform ?? 'all';
+  const selectedPlatform = config.platform ?? 'all';
+  if (PLATFORMS.includes(selectedPlatform as (typeof PLATFORMS)[number])) {
+    return selectedPlatform as 'ios' | 'android' | 'all';
+  }
+  throw new Error(`mobile-expo platform must be one of: ${PLATFORMS.join(', ')}`);
 }
 
 function profile(ctx: { channel: string }, config: Config): string {

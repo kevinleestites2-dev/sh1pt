@@ -65,6 +65,24 @@ describe('mobile-expo target adapter', () => {
     });
   });
 
+  it('rejects unsupported platforms while building', async () => {
+    const outDir = await mkdtemp(join(tmpdir(), 'sh1pt-expo-out-'));
+    const projectDir = await mkdtemp(join(tmpdir(), 'sh1pt-expo-project-'));
+    tempDirs.push(outDir, projectDir);
+
+    await expect(adapter.build(fakeBuildContext({
+      outDir,
+      projectDir,
+      version: '1.2.3',
+      channel: 'beta',
+      dryRun: true,
+    }) as any, {
+      appId: '@acme/mobile-app',
+      platform: 'web',
+    } as any)).rejects.toThrow('mobile-expo platform must be one of: ios, android, all');
+    expect(execMock).not.toHaveBeenCalled();
+  });
+
   it('runs EAS with argv args and writes build metadata for real builds', async () => {
     execMock.mockResolvedValue({ exitCode: 0, stdout: '{"buildId":"abc"}\n', stderr: '' });
 
@@ -163,5 +181,19 @@ describe('mobile-expo target adapter', () => {
       id: 'acme-mobile@1.2.3',
       url: 'https://expo.dev/accounts/acme-mobile',
     });
+  });
+
+  it('rejects unsupported platforms while shipping', async () => {
+    await expect(adapter.ship(fakeShipContext({
+      projectDir: '/tmp/expo-app',
+      version: '1.2.3',
+      channel: 'stable',
+      dryRun: true,
+    }) as any, {
+      appId: 'acme-mobile',
+      platform: 'web',
+      submit: true,
+    } as any)).rejects.toThrow('mobile-expo platform must be one of: ios, android, all');
+    expect(execMock).not.toHaveBeenCalled();
   });
 });
