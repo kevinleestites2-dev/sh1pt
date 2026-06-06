@@ -1,4 +1,5 @@
 import { defineTarget, manualSetup } from '@profullstack/sh1pt-core';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 // Telegram bots. No "store" means a bot is just a token + webhook URL. This
@@ -26,19 +27,75 @@ interface TelegramResponse<T> {
 
 type TelegramCommand = { command: string; description: string };
 
+function requireValue(value: string | undefined, field: string): string {
+  const trimmed = value?.trim();
+  if (!trimmed) throw new Error(`chat-telegram requires ${field}`);
+  return trimmed;
+}
+
+function optionalValue(value: string | undefined, field: string): string | undefined {
+  return value === undefined ? undefined : requireValue(value, field);
+}
+
+function httpsUrl(value: string | undefined, field: string): string {
+  const url = requireValue(value, field);
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error(`chat-telegram ${field} must be an https URL`);
+  }
+  if (parsed.protocol !== 'https:') throw new Error(`chat-telegram ${field} must be an https URL`);
+  return url;
+}
+
+function normalizedConfig(config: Config): Config {
+  return {
+    ...config,
+    botUsername: normalizeUsername(config.botUsername),
+    webhookUrl: httpsUrl(config.webhookUrl, 'webhookUrl'),
+    commands: normalizeCommands(config.commands),
+    description: optionalValue(config.description, 'description'),
+    shortDescription: optionalValue(config.shortDescription, 'shortDescription'),
+    tokenKey: optionalValue(config.tokenKey, 'tokenKey'),
+    webhookSecretKey: optionalValue(config.webhookSecretKey, 'webhookSecretKey'),
+    directoryListings: directoryListings(config.directoryListings),
+  };
+}
+
+function manifestFor(config: Config, version: string) {
+  config = normalizedConfig(config);
+  return {
+    provider: 'telegram',
+    botUsername: config.botUsername,
+    version,
+    webhookUrl: config.webhookUrl,
+    commands: config.commands ?? [],
+    description: config.description,
+    shortDescription: config.shortDescription,
+    directoryListings: config.directoryListings ?? [],
+    botUrl: `https://t.me/${config.botUsername}`,
+  };
+}
+
 export default defineTarget<Config>({
   id: 'chat-telegram',
   kind: 'chat',
   label: 'Telegram Bot',
   async build(ctx, config) {
-    const username = normalizeUsername(config.botUsername);
+    const manifest = manifestFor(config, ctx.version);
+    const username = manifest.botUsername;
     ctx.log(`telegram prepare bot manifest for @${username}`);
-    return { artifact: join(ctx.outDir, `telegram-${safeFilename(username)}.json`) };
+    const artifact = join(ctx.outDir, `telegram-${safeFilename(username)}.json`);
+    await mkdir(ctx.outDir, { recursive: true });
+    await writeFile(artifact, `${JSON.stringify(manifest, null, 2)}\n`, 'utf-8');
+    return { artifact, meta: { botUrl: manifest.botUrl, commands: manifest.commands.length } };
   },
   async ship(ctx, config) {
-    const username = normalizeUsername(config.botUsername);
+    config = normalizedConfig(config);
+    const username = config.botUsername;
     ctx.log(`telegram setWebhook + setMyCommands for @${username}`);
-    if (ctx.dryRun) return { id: 'dry-run' };
+    if (ctx.dryRun) return { id: 'dry-run', meta: manifestFor(config, ctx.version) };
 
     const tokenKey = config.tokenKey ?? 'TELEGRAM_BOT_TOKEN';
     const token = ctx.secret(tokenKey);
@@ -51,7 +108,7 @@ export default defineTarget<Config>({
 
     if (config.commands?.length) {
       await callTelegram(ctx.log, token, 'setMyCommands', {
-        commands: config.commands.map(normalizeCommand),
+        commands: config.commands,
       });
     }
 
@@ -101,8 +158,10 @@ async function callTelegram<T>(
 }
 
 function normalizeUsername(username: string): string {
-  const clean = username.replace(/^@/, '').trim();
-  if (!clean) throw new Error('botUsername is required');
+  const clean = requireValue(username, 'botUsername').replace(/^@/, '');
+  if (!/^[A-Za-z0-9_]{5,32}$/.test(clean) || !/bot$/i.test(clean)) {
+    throw new Error('chat-telegram botUsername must be 5-32 characters, use letters/numbers/underscores, and end with bot');
+  }
   return clean;
 }
 
@@ -111,10 +170,30 @@ function safeFilename(value: string): string {
 }
 
 function normalizeCommand(command: TelegramCommand): TelegramCommand {
+  const name = requireValue(command.command, 'command').replace(/^\//, '');
+  if (!/^[a-z0-9_]{1,32}$/.test(name)) {
+    throw new Error('chat-telegram command must contain 1-32 lowercase letters, numbers, or underscores');
+  }
+  const description = requireValue(command.description, `command ${name} description`);
+  if (description.length > 256) throw new Error(`chat-telegram command ${name} description must be 256 characters or fewer`);
   return {
-    command: command.command.replace(/^\//, ''),
-    description: command.description,
+    command: name,
+    description,
   };
+}
+
+function normalizeCommands(commands: Config['commands']): TelegramCommand[] {
+  return (commands ?? []).map(normalizeCommand);
+}
+
+function directoryListings(values: Config['directoryListings']): Config['directoryListings'] {
+  const listings = values ?? [];
+  for (const listing of listings) {
+    if (listing !== 'storebot.me' && listing !== 'combot.org') {
+      throw new Error('chat-telegram directoryListings must be storebot.me or combot.org');
+    }
+  }
+  return listings;
 }
 
 function requireSecret(ctx: { secret(key: string): string | undefined }, key: string): string {

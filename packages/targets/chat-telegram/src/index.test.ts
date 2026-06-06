@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { contractTestTarget, fakeBuildContext, fakeShipContext } from '@profullstack/sh1pt-core/testing';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import adapter from './index.js';
 
@@ -11,19 +13,40 @@ contractTestTarget(adapter, {
   },
 });
 
-afterEach(() => {
+const tempDirs: string[] = [];
+
+afterEach(async () => {
   vi.restoreAllMocks();
+  await Promise.all(tempDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
 });
 
 describe('chat-telegram API calls', () => {
-  it('sanitizes botUsername when building the manifest artifact path', async () => {
-    const outDir = '/tmp/sh1pt-out';
+  it('writes a Telegram manifest artifact', async () => {
+    const outDir = await mkdtemp(join(tmpdir(), 'sh1pt-telegram-'));
+    tempDirs.push(outDir);
+
     const result = await adapter.build(fakeBuildContext({ outDir }) as any, {
-      botUsername: '../demo/bot',
+      botUsername: 'demo_bot',
       webhookUrl: 'https://example.com/telegram',
+      commands: [{ command: '/start', description: 'Start the bot' }],
+      directoryListings: ['storebot.me'],
     });
 
-    expect(result.artifact).toBe(join(outDir, 'telegram-___demo_bot.json'));
+    expect(result.artifact).toBe(join(outDir, 'telegram-demo_bot.json'));
+    expect(result.meta).toEqual({
+      botUrl: 'https://t.me/demo_bot',
+      commands: 1,
+    });
+
+    const manifest = JSON.parse(await readFile(result.artifact, 'utf-8'));
+    expect(manifest).toMatchObject({
+      provider: 'telegram',
+      botUsername: 'demo_bot',
+      webhookUrl: 'https://example.com/telegram',
+      botUrl: 'https://t.me/demo_bot',
+      commands: [{ command: 'start', description: 'Start the bot' }],
+      directoryListings: ['storebot.me'],
+    });
   });
 
   it('sets webhook, commands, and bot descriptions', async () => {
@@ -86,7 +109,35 @@ describe('chat-telegram API calls', () => {
 
     await expect(adapter.ship(ctx as any, {
       botUsername: 'demo_bot',
-      webhookUrl: 'not-a-url',
+      webhookUrl: 'https://example.com/telegram',
     })).rejects.toThrow('Bad Request: invalid webhook url');
+  });
+
+  it('rejects invalid Telegram config before API calls', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch');
+
+    await expect(adapter.build(fakeBuildContext() as any, {
+      botUsername: '../demo/bot',
+      webhookUrl: 'https://example.com/telegram',
+    })).rejects.toThrow('botUsername must be 5-32 characters');
+
+    await expect(adapter.ship(fakeShipContext({ dryRun: false }) as any, {
+      botUsername: 'demo_bot',
+      webhookUrl: 'http://example.com/telegram',
+    })).rejects.toThrow('webhookUrl must be an https URL');
+
+    await expect(adapter.ship(fakeShipContext({ dryRun: false }) as any, {
+      botUsername: 'demo_bot',
+      webhookUrl: 'https://example.com/telegram',
+      commands: [{ command: '/Start', description: 'Start the bot' }],
+    })).rejects.toThrow('command must contain 1-32 lowercase');
+
+    await expect(adapter.build(fakeBuildContext() as any, {
+      botUsername: 'demo_bot',
+      webhookUrl: 'https://example.com/telegram',
+      directoryListings: ['unknown.example'],
+    } as any)).rejects.toThrow('directoryListings must be storebot.me or combot.org');
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
