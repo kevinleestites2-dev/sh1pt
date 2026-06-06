@@ -9,7 +9,53 @@ interface Config {
   registry?: string;
 }
 
+function requireText(value: string | undefined, field: string): string {
+  const text = value?.trim();
+  if (!text) throw new Error(`pkg-npm requires ${field}`);
+  return text;
+}
+
+function optionalText(value: string | undefined, field: string): string | undefined {
+  return value === undefined ? undefined : requireText(value, field);
+}
+
+function publishTag(value: string | undefined, channel: string): string {
+  const tag = optionalText(value, 'tag') ?? (channel === 'stable' ? 'latest' : channel);
+  if (!/^[A-Za-z0-9._-]+$/.test(tag)) {
+    throw new Error('pkg-npm tag must contain only letters, numbers, dots, underscores, or hyphens');
+  }
+  return tag;
+}
+
+function publishAccess(value: Config['access']): Config['access'] {
+  if (value === undefined) return undefined;
+  if (!['public', 'restricted'].includes(value)) throw new Error(`pkg-npm access "${value}" is not supported`);
+  return value;
+}
+
+function registryUrl(value: string | undefined): string {
+  const registry = optionalText(value, 'registry') ?? 'https://registry.npmjs.org';
+  let parsed: URL;
+  try {
+    parsed = new URL(registry);
+  } catch {
+    throw new Error('pkg-npm registry must be a valid HTTP(S) URL');
+  }
+  if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('pkg-npm registry must use HTTP(S)');
+  return registry.replace(/\/+$/, '');
+}
+
+function normalizedConfig(config: Config): Config {
+  return {
+    ...config,
+    packageDir: optionalText(config.packageDir, 'packageDir'),
+    access: publishAccess(config.access),
+    registry: registryUrl(config.registry),
+  };
+}
+
 function packageDir(ctx: { projectDir: string }, config: Config): string {
+  config = normalizedConfig(config);
   return config.packageDir ? join(ctx.projectDir, config.packageDir) : ctx.projectDir;
 }
 
@@ -26,6 +72,7 @@ export default defineTarget<Config>({
   kind: 'package-manager',
   label: 'npm',
   async build(ctx, config) {
+    config = normalizedConfig(config);
     const pkgDir = packageDir(ctx, config);
     if (ctx.dryRun) return { artifact: `${ctx.outDir}/package.tgz` };
     ctx.log(`npm pack in ${pkgDir}`);
@@ -37,8 +84,9 @@ export default defineTarget<Config>({
     return { artifact: `${ctx.outDir}/package.tgz` };
   },
   async ship(ctx, config) {
-    const tag = config.tag ?? (ctx.channel === 'stable' ? 'latest' : ctx.channel);
-    const registry = config.registry ?? 'https://registry.npmjs.org';
+    config = normalizedConfig(config);
+    const tag = publishTag(config.tag, ctx.channel);
+    const registry = registryUrl(config.registry);
     ctx.log(`npm publish --tag ${tag} --access ${config.access ?? 'public'} → ${registry}`);
     if (ctx.dryRun) return { id: 'dry-run' };
 

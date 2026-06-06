@@ -38,6 +38,26 @@ describe('npm package publishing', () => {
     expect(execMock).not.toHaveBeenCalled();
   });
 
+  it('rejects invalid npm publish config before registry work', async () => {
+    await expect(target.ship(fakeShipContext({ dryRun: true }) as any, {
+      packageDir: '   ',
+    })).rejects.toThrow('pkg-npm requires packageDir');
+
+    await expect(target.ship(fakeShipContext({ dryRun: true }) as any, {
+      tag: 'bad tag',
+    })).rejects.toThrow('tag must contain only letters');
+
+    await expect(target.ship(fakeShipContext({ dryRun: true }) as any, {
+      access: 'private' as any,
+    })).rejects.toThrow('access "private" is not supported');
+
+    await expect(target.ship(fakeShipContext({ dryRun: true }) as any, {
+      registry: 'ftp://registry.example.com',
+    })).rejects.toThrow('registry must use HTTP(S)');
+
+    expect(execMock).not.toHaveBeenCalled();
+  });
+
   it('publishes with a temporary npmrc and returns the package URL', async () => {
     const projectDir = await mkdtemp(join(tmpdir(), 'sh1pt-npm-project-'));
     const outDir = await mkdtemp(join(tmpdir(), 'sh1pt-npm-out-'));
