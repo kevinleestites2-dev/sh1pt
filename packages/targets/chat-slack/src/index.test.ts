@@ -70,4 +70,57 @@ describe('Slack app manifest generation', () => {
       scopes: { bot: ['chat:write'] },
     })).resolves.toEqual({ id: 'dry-run' });
   });
+
+  it('rejects invalid Slack config before rendering or shipping', async () => {
+    await expect(adapter.build(fakeBuildContext() as any, {
+      appId: 'not-an-app',
+      clientId: '123.456',
+      distribution: 'workspace',
+      requestUrl: 'https://example.com/slack/events',
+      scopes: { bot: ['chat:write'] },
+    })).rejects.toThrow('appId must look like a Slack app ID');
+
+    await expect(adapter.build(fakeBuildContext() as any, {
+      appId: 'A123456',
+      clientId: 'client-id',
+      distribution: 'workspace',
+      requestUrl: 'https://example.com/slack/events',
+      scopes: { bot: ['chat:write'] },
+    })).rejects.toThrow('clientId must look like a Slack client ID');
+
+    await expect(adapter.build(fakeBuildContext() as any, {
+      appId: 'A123456',
+      clientId: '123.456',
+      distribution: 'global',
+      requestUrl: 'https://example.com/slack/events',
+      scopes: { bot: ['chat:write'] },
+    } as any)).rejects.toThrow('distribution must be workspace or directory');
+
+    await expect(adapter.ship(fakeShipContext({ dryRun: true }) as any, {
+      appId: 'A123456',
+      clientId: '123.456',
+      distribution: 'workspace',
+      requestUrl: 'http://example.com/slack/events',
+      scopes: { bot: ['chat:write'] },
+    })).rejects.toThrow('requestUrl must be an https URL');
+
+    await expect(adapter.build(fakeBuildContext() as any, {
+      appId: 'A123456',
+      clientId: '123.456',
+      distribution: 'workspace',
+      requestUrl: 'https://example.com/slack/events',
+      scopes: {},
+    })).rejects.toThrow('requires at least one bot or user scope');
+
+    await expect(adapter.build(fakeBuildContext() as any, {
+      appId: 'A123456',
+      clientId: '123.456',
+      distribution: 'workspace',
+      requestUrl: 'https://example.com/slack/events',
+      slashCommands: [
+        { command: 'ship', url: 'https://example.com/slack/commands', description: 'Ship it' },
+      ],
+      scopes: { bot: ['chat:write'] },
+    })).rejects.toThrow('slash command must start with /');
+  });
 });
