@@ -9,7 +9,8 @@
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
-    "@profullstack/sh1pt-core": "workspace:*"
+    "@profullstack/sh1pt-core": "workspace:*",
+    "posthog-js": "^1.381.0"
   },
   "license": "MIT",
   "repository": {
