@@ -8,6 +8,7 @@
 // access token is < 60s from expiry.
 
 import { promises as fs } from 'node:fs';
+import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 const FILE_NAME = 'credentials.json';
@@ -22,7 +23,7 @@ export interface Credentials {
 export function configDir(): string {
   const xdg = process.env.XDG_CONFIG_HOME;
   if (xdg && xdg.length > 0) return join(xdg, 'sh1pt');
-  return join(process.env.HOME ?? '.', '.config', 'sh1pt');
+  return join(process.env.HOME || homedir() || '.', '.config', 'sh1pt');
 }
 
 export function credentialsPath(): string {
