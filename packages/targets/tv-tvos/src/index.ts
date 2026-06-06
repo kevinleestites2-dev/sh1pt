@@ -11,13 +11,23 @@ interface Config {
 }
 
 const PLAN_FILE = 'tvos-package-plan.json';
+const BUNDLE_ID_PATTERN = /^[A-Za-z][A-Za-z0-9-]*(\.[A-Za-z][A-Za-z0-9-]*)+$/;
+
+function requireBundleId(config: Config): string {
+  const bundleId = config.bundleId?.trim();
+  if (!bundleId) throw new Error('tv-tvos requires bundleId');
+  if (!BUNDLE_ID_PATTERN.test(bundleId)) {
+    throw new Error('tv-tvos bundleId must be a valid reverse-DNS identifier');
+  }
+  return bundleId;
+}
 
 function scheme(config: Config): string {
   return config.scheme ?? 'default';
 }
 
-function artifactPath(ctx: { outDir: string }, config: Config): string {
-  return config.ipaPath ?? join(ctx.outDir, 'tvos', `${config.bundleId}.ipa`);
+function artifactPath(ctx: { outDir: string }, bundleId: string, config: Config): string {
+  return config.ipaPath ?? join(ctx.outDir, 'tvos', `${bundleId}.ipa`);
 }
 
 function destination(channel: string, config: Config): string {
@@ -27,11 +37,12 @@ function destination(channel: string, config: Config): string {
 }
 
 function buildPlan(ctx: { outDir: string; version: string; channel: string }, config: Config) {
-  const artifact = artifactPath(ctx, config);
-  const archivePath = join(ctx.outDir, 'tvos', `${config.bundleId}.xcarchive`);
+  const bundleId = requireBundleId(config);
+  const artifact = artifactPath(ctx, bundleId, config);
+  const archivePath = join(ctx.outDir, 'tvos', `${bundleId}.xcarchive`);
   const exportOptions = join(ctx.outDir, 'tvos', 'ExportOptions.plist');
   return {
-    bundleId: config.bundleId,
+    bundleId,
     teamId: config.teamId,
     version: ctx.version,
     channel: ctx.channel,
@@ -74,7 +85,7 @@ export default defineTarget<Config>({
   },
   async ship(ctx, config) {
     const plan = buildPlan(ctx, config);
-    ctx.log(`upload ${config.bundleId}@${ctx.version} to ${plan.destination} via App Store Connect API`);
+    ctx.log(`upload ${plan.bundleId}@${ctx.version} to ${plan.destination} via App Store Connect API`);
     if (ctx.dryRun) {
       return {
         id: 'dry-run',
@@ -87,7 +98,7 @@ export default defineTarget<Config>({
       };
     }
     // TODO: upload through App Store Connect API credentials from the vault.
-    return { id: `${config.bundleId}@${ctx.version}` };
+    return { id: `${plan.bundleId}@${ctx.version}` };
   },
   async status(id) {
     return { state: 'in-review', version: id };

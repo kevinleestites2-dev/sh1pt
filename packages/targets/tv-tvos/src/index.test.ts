@@ -98,4 +98,29 @@ describe('tvOS package planning', () => {
       },
     });
   });
+
+  it('rejects invalid bundle identifiers while building', async () => {
+    const outDir = await mkdtemp(join(tmpdir(), 'sh1pt-tvos-'));
+    tempDirs.push(outDir);
+
+    await expect(adapter.build(fakeBuildContext({
+      outDir,
+      version: '3.1.0',
+      channel: 'stable',
+    }) as any, {
+      bundleId: '../AcmeTV',
+      teamId: 'TEAM123456',
+    })).rejects.toThrow('tv-tvos bundleId must be a valid reverse-DNS identifier');
+  });
+
+  it('rejects invalid bundle identifiers while shipping', async () => {
+    await expect(adapter.ship(fakeShipContext({
+      channel: 'beta',
+      artifact: 'dist/tvos.ipa',
+      dryRun: true,
+    }) as any, {
+      bundleId: 'com.acme/tvos',
+      teamId: 'TEAM123456',
+    })).rejects.toThrow('tv-tvos bundleId must be a valid reverse-DNS identifier');
+  });
 });
