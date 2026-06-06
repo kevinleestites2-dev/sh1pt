@@ -7,6 +7,30 @@ interface Config {
   description?: string;
 }
 
+function requireText(value: unknown, name: string): string {
+  if (typeof value !== 'string' || !value.trim()) throw new Error(`${name} required`);
+  return value.trim();
+}
+
+function optionalText(value: unknown, name: string): string | undefined {
+  if (value === undefined) return undefined;
+  return requireText(value, name);
+}
+
+function requirePositiveAmount(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    throw new Error('amount must be a positive number');
+  }
+  return value;
+}
+
+function requireAssetCode(value: unknown, name: string, fallback?: string): string {
+  const raw = value === undefined ? fallback : value;
+  const code = requireText(raw, name).toUpperCase();
+  if (!/^[A-Z0-9_]{2,16}$/.test(code)) throw new Error(`${name} must be an uppercase asset code`);
+  return code;
+}
+
 export default defineTarget<Config>({
   id: 'payment-coinpay',
   kind: 'payment',
@@ -55,10 +79,11 @@ export default defineTarget<Config>({
     switch (cmd) {
       case 'create': {
         const args = ['payment', 'create'];
-        const bizId = config.businessId ?? (config.args?.businessId as string);
+        const bizId = optionalText(config.businessId ?? config.args?.businessId, 'businessId');
         if (bizId) args.push('--business-id', bizId);
-        if (config.args?.amount) args.push('--amount', String(config.args.amount));
-        if (config.args?.blockchain) args.push('--blockchain', String(config.args.blockchain));
+        const amount = requirePositiveAmount(config.args?.amount);
+        args.push('--amount', String(amount));
+        if (config.args?.blockchain) args.push('--blockchain', requireAssetCode(config.args.blockchain, 'blockchain'));
         if (config.description) args.push('--description', config.description);
 
         const { stdout } = await exec('coinpay', args, { log: ctx.log, throwOnNonZero: true });
@@ -66,23 +91,22 @@ export default defineTarget<Config>({
       }
 
       case 'get': {
-        const paymentId = config.args?.paymentId as string;
-        if (!paymentId) throw new Error('paymentId required for get command');
+        const paymentId = requireText(config.args?.paymentId, 'paymentId');
         const { stdout } = await exec('coinpay', ['payment', 'get', paymentId], { log: ctx.log });
         return { id: paymentId, meta: { raw: stdout.trim() } };
       }
 
       case 'list': {
         const args = ['payment', 'list'];
-        const bizId = config.businessId ?? (config.args?.businessId as string);
+        const bizId = optionalText(config.businessId ?? config.args?.businessId, 'businessId');
         if (bizId) args.push('--business-id', bizId);
         const { stdout } = await exec('coinpay', args, { log: ctx.log });
         return { id: `list-${Date.now()}`, meta: { raw: stdout.trim() } };
       }
 
       case 'rates': {
-        const coin = (config.args?.coin as string) ?? 'BTC';
-        const fiat = (config.args?.fiat as string) ?? 'USD';
+        const coin = requireAssetCode(config.args?.coin, 'coin', 'BTC');
+        const fiat = requireAssetCode(config.args?.fiat, 'fiat', 'USD');
         const { stdout } = await exec('coinpay', ['rates', 'get', coin, '--fiat', fiat], { log: ctx.log });
         return { id: `${coin}-${fiat}`, meta: { raw: stdout.trim() } };
       }
