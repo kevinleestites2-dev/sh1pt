@@ -44,9 +44,12 @@ sh1pt exposes LogicSRC standards workflows under a dedicated sub-command:
 ```bash
 sh1pt logicsrc
 sh1pt logicsrc plugins
+sh1pt logicsrc --openspec agentswarm --yolo --repo profullstack/logicsrc
 sh1pt logicsrc --openspec-only task validate ./task.yaml
 sh1pt logicsrc --openspec-only agentswarm --yolo --repo profullstack/logicsrc
 ```
+
+Use `--openspec` to enable OpenSpec.dev-compatible repo-local planning conventions where supported.
 
 Use `--openspec-only` when a workflow must stay inside LogicSRC-published schemas, CLI/TUI conventions, SDK contracts, MCP resources/tools/prompts, PWA states, and curl-compatible API surfaces.
 
