@@ -92,6 +92,49 @@ describe('Discord chat target', () => {
     })).rejects.toThrow('DISCORD_APP_TOKEN not in vault');
   });
 
+  it('rejects invalid Discord config before API calls', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(adapter.build(fakeBuildContext() as any, {
+      applicationId: 'app-id',
+      distribution: 'public',
+    })).rejects.toThrow('applicationId must contain only digits');
+
+    await expect(adapter.build(fakeBuildContext() as any, {
+      applicationId: '123456',
+      distribution: 'beta',
+    } as any)).rejects.toThrow('distribution must be private, public, or directory');
+
+    await expect(adapter.ship(fakeShipContext({ dryRun: false }) as any, {
+      applicationId: '123456',
+      distribution: 'private',
+      interactionsEndpointUrl: 'http://bot.example.com/interactions',
+    })).rejects.toThrow('interactionsEndpointUrl must be an https URL');
+
+    await expect(adapter.ship(fakeShipContext({ dryRun: false }) as any, {
+      applicationId: '123456',
+      distribution: 'private',
+      scopes: ['email'],
+    } as any)).rejects.toThrow('scopes must be bot or applications.commands');
+
+    await expect(adapter.build(fakeBuildContext() as any, {
+      applicationId: '123456',
+      distribution: 'private',
+      permissions: -1,
+    })).rejects.toThrow('permissions must be a non-negative integer');
+
+    await expect(adapter.ship(fakeShipContext({ dryRun: false }) as any, {
+      applicationId: '123456',
+      distribution: 'private',
+      slashCommands: [
+        { name: '/bad name', description: 'Deploy the app' },
+      ],
+    })).rejects.toThrow('slash command name must be 1-32 lowercase');
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('patches the application and overwrites global slash commands', async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce({ ok: true, status: 200, text: async () => '{"id":"123456"}' })

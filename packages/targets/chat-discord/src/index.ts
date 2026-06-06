@@ -27,18 +27,52 @@ interface DiscordCommand {
   options?: unknown[];
 }
 
+function requireValue(value: string | undefined, field: string): string {
+  const trimmed = value?.trim();
+  if (!trimmed) throw new Error(`chat-discord requires ${field}`);
+  return trimmed;
+}
+
+function optionalValue(value: string | undefined, field: string): string | undefined {
+  return value === undefined ? undefined : requireValue(value, field);
+}
+
 function requireApplicationId(config: Config): string {
-  const applicationId = config.applicationId?.trim();
-  if (!applicationId) throw new Error('chat-discord requires applicationId');
+  const applicationId = requireValue(config.applicationId, 'applicationId');
+  if (!/^\d+$/.test(applicationId)) throw new Error('chat-discord applicationId must contain only digits');
   return applicationId;
+}
+
+function distribution(value: Config['distribution'] | undefined): Config['distribution'] {
+  if (value !== 'private' && value !== 'public' && value !== 'directory') {
+    throw new Error('chat-discord distribution must be private, public, or directory');
+  }
+  return value;
+}
+
+function interactionsEndpointUrl(value: string | undefined): string | undefined {
+  const endpoint = optionalValue(value, 'interactionsEndpointUrl');
+  if (endpoint === undefined) return undefined;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(endpoint);
+  } catch {
+    throw new Error('chat-discord interactionsEndpointUrl must be an https URL');
+  }
+  if (parsed.protocol !== 'https:') throw new Error('chat-discord interactionsEndpointUrl must be an https URL');
+  return endpoint;
 }
 
 function normalizeCommands(commands: Config['slashCommands']): DiscordCommand[] {
   return (commands ?? []).map((command) => {
-    const name = command.name.replace(/^\//, '').trim().toLowerCase();
+    const name = requireValue(command.name, 'slash command name').replace(/^\//, '').trim().toLowerCase();
     if (!name) throw new Error('chat-discord slash command name is required');
-    const description = command.description.trim();
-    if (!description) throw new Error(`chat-discord slash command "${name}" requires description`);
+    if (!/^[a-z0-9_-]{1,32}$/.test(name)) {
+      throw new Error('chat-discord slash command name must be 1-32 lowercase letters, numbers, underscores, or hyphens');
+    }
+    const description = requireValue(command.description, `slash command "${name}" description`);
+    if (description.length > 100) throw new Error(`chat-discord slash command "${name}" description must be 100 characters or fewer`);
 
     return {
       name,
@@ -49,31 +83,47 @@ function normalizeCommands(commands: Config['slashCommands']): DiscordCommand[] 
 }
 
 function scopesFor(config: Config): string[] {
-  return config.scopes?.length ? config.scopes : ['bot', 'applications.commands'];
+  const scopes = config.scopes?.length ? config.scopes : ['bot', 'applications.commands'];
+  for (const scope of scopes) {
+    if (scope !== 'bot' && scope !== 'applications.commands') {
+      throw new Error('chat-discord scopes must be bot or applications.commands');
+    }
+  }
+  return scopes;
+}
+
+function permissionsFor(value: number | undefined): number {
+  if (value === undefined) return 0;
+  if (!Number.isInteger(value) || value < 0) throw new Error('chat-discord permissions must be a non-negative integer');
+  return value;
 }
 
 function inviteUrl(config: Config): string {
   const query = new URLSearchParams({
     client_id: requireApplicationId(config),
     scope: scopesFor(config).join(' '),
-    permissions: String(config.permissions ?? 0),
+    permissions: String(permissionsFor(config.permissions)),
   });
   return `https://discord.com/oauth2/authorize?${query.toString()}`;
 }
 
 function manifestFor(config: Config, version: string) {
   const commands = normalizeCommands(config.slashCommands);
+  const distro = distribution(config.distribution);
+  const endpoint = interactionsEndpointUrl(config.interactionsEndpointUrl);
+  const scopes = scopesFor(config);
+  const permissions = permissionsFor(config.permissions);
   return {
     provider: 'discord',
     applicationId: requireApplicationId(config),
     version,
-    distribution: config.distribution,
-    interactionsEndpointUrl: config.interactionsEndpointUrl,
-    scopes: scopesFor(config),
-    permissions: config.permissions ?? 0,
+    distribution: distro,
+    interactionsEndpointUrl: endpoint,
+    scopes,
+    permissions,
     inviteUrl: inviteUrl(config),
     commands,
-    directoryReviewRequired: config.distribution === 'directory',
+    directoryReviewRequired: distro === 'directory',
   };
 }
 
@@ -119,7 +169,7 @@ export default defineTarget<Config>({
     ctx.log(`discord · bulk overwrite ${manifest.commands.length} commands${manifest.interactionsEndpointUrl ? ' + update interactions endpoint' : ''}`);
     if (ctx.dryRun) return { id: 'dry-run', meta: manifest };
 
-    const tokenKey = config.tokenKey ?? 'DISCORD_APP_TOKEN';
+    const tokenKey = optionalValue(config.tokenKey, 'tokenKey') ?? 'DISCORD_APP_TOKEN';
     const token = ctx.secret(tokenKey);
     if (!token) throw new Error(`${tokenKey} not in vault — run: sh1pt secret set ${tokenKey} <bot-token>`);
 
