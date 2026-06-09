@@ -1,3 +1,4 @@
+import type { TargetKind } from '@profullstack/sh1pt-core';
 import type { LintContext, LintResult, Rule } from './rule.js';
 import { requiredFields } from './rules/required-fields.js';
 import { forbiddenKeywords } from './rules/forbidden-keywords.js';
@@ -21,9 +22,7 @@ export async function lint(ctx: LintContext, rules: Rule[] = defaultRules): Prom
   // Without this filter, mobile-only rules (e.g. mobile/bundle-id) fire
   // false-positive errors on web/api targets that happen to carry a bundleId
   // config field for unrelated purposes.
-  const manifestKinds = new Set(
-    Object.values(ctx.manifest.targets ?? {}).map((t) => t.kind),
-  );
+  const manifestKinds = new Set(Object.keys(ctx.manifest.targets ?? {}) as TargetKind[]);
   const applicable = rules.filter(
     (r) => !r.appliesTo || r.appliesTo.length === 0 || r.appliesTo.some((k) => manifestKinds.has(k)),
   );
