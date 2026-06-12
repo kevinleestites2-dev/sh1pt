@@ -40,7 +40,9 @@ describe('built-in packs', () => {
     const file = result.files[0];
     expect(file?.destination).toBe('.github/workflows/ci.yml');
     expect(file?.content).toContain("node-version: '22'");
-    expect(file?.content).toContain('version: 9');
+    expect(file?.content).toContain('pnpm/action-setup@v4');
+    // pnpm version comes from package.json's packageManager field, not a pinned input.
+    expect(file?.content).not.toContain('version: 9');
     expect(file?.content).toContain('pnpm install --frozen-lockfile');
     expect(file?.content).toContain('${{ github.workflow }}');
     expect(file?.content).toContain('# Managed by sh1pt Actions Fleet');
@@ -73,7 +75,9 @@ describe('built-in packs', () => {
     expect(file?.destination).toBe('.github/workflows/test.yml');
     expect(file?.content).toContain('branches: [master]');
     expect(file?.content).toContain('node-version: 22');
-    expect(file?.content).toContain('version: 9.12.0');
+    expect(file?.content).toContain('pnpm/action-setup@v4');
+    // pnpm version comes from package.json's packageManager field, not a pinned input.
+    expect(file?.content).not.toContain('version: 9.12.0');
     expect(file?.content).toContain('pnpm test');
     expect(file?.content).toContain('# Managed by sh1pt Actions Fleet');
   });

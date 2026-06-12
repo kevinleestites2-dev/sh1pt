@@ -9,11 +9,6 @@
       "default": "22",
       "description": "Node.js version to install."
     },
-    "pnpmVersion": {
-      "type": "string",
-      "default": "9",
-      "description": "pnpm major version to install."
-    },
     "installCommand": {
       "type": "string",
       "default": "pnpm install --frozen-lockfile",

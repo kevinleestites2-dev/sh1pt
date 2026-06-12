@@ -1,6 +1,6 @@
 id: node-pnpm-test
 name: Node pnpm Test
-version: 1.0.0
+version: 1.1.0
 category: test
 description: Node/pnpm test workflow based on sh1pt's own repository test workflow.
 provider: github

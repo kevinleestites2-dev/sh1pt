@@ -2,7 +2,7 @@ schemaVersion: 1
 id: node-pnpm-ci
 name: Node pnpm CI
 description: Least-privilege Node/TypeScript CI workflow using pnpm — install, typecheck, test.
-version: 1.0.0
+version: 1.1.0
 publisher: profullstack
 visibility: public
 license: MIT
@@ -29,10 +29,6 @@ inputs:
     type: string
     default: '22'
     description: Node.js version to install.
-  pnpmVersion:
-    type: string
-    default: '9'
-    description: pnpm major version to install.
   installCommand:
     type: string
     default: pnpm install --frozen-lockfile

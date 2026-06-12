@@ -9,11 +9,6 @@
       "default": "22",
       "description": "Node.js version to install."
     },
-    "pnpmVersion": {
-      "type": "string",
-      "default": "9.12.0",
-      "description": "pnpm version to install."
-    },
     "pushBranch": {
       "type": "string",
       "default": "master",
