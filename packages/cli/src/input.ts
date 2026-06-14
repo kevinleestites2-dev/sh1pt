@@ -104,8 +104,9 @@ function normalizeGitUrl(u: string): string {
 }
 
 function normalizeUrl(u: string): string {
-  // For live-site URLs keep query strings and fragments intact; only strip trailing slashes.
-  return u.replace(/\/+$/, '');
+  // For live-site URLs keep query strings and fragments intact; only strip
+  // trailing slashes from the path segment.
+  return u.replace(/\/+(?=[?#]|$)/, '');
 }
 
 function repoNameFromGit(u: string): string | undefined {

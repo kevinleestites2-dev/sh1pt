@@ -48,6 +48,15 @@ describe('resolveInput', () => {
     expect(r.inferredName).toBe('example.com');
   });
 
+  it('preserves query and fragment trailing slashes for live-site urls', () => {
+    expect(resolveInput('https://example.com/search/?q=/').value).toBe(
+      'https://example.com/search?q=/',
+    );
+    expect(resolveInput('https://example.com/docs/#/intro/').value).toBe(
+      'https://example.com/docs#/intro/',
+    );
+  });
+
   it('strips www from inferred hostname', () => {
     const r = resolveInput('https://www.acme.io');
     expect(r.inferredName).toBe('acme.io');
