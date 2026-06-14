@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parsePaymentsSummary } from './config.js';
+import { parsePaymentsSummary } from './config-payments.js';
 
 describe('parsePaymentsSummary', () => {
   it('extracts configured providers, default, and platform fee from sh1pt config text', () => {
@@ -34,5 +34,28 @@ describe('parsePaymentsSummary', () => {
 
   it('returns undefined when no payments block exists', () => {
     expect(parsePaymentsSummary('export default defineConfig({ name: "demo" })')).toBeUndefined();
+  });
+
+  it('extracts payments when config object keys are quoted', () => {
+    const summary = parsePaymentsSummary(`
+      export default defineConfig({
+        "payments": {
+          "defaultProvider": "coinpay",
+          "providers": {
+            "coinpay": { "use": "payment-coinpay", "enabled": true },
+          },
+          "platformFeeBps": 250,
+        },
+      });
+    `);
+
+    expect(summary).toEqual({
+      path: 'sh1pt.config.ts',
+      defaultProvider: 'coinpay',
+      platformFeeBps: 250,
+      providers: [
+        { key: 'coinpay', use: 'payment-coinpay', enabled: true, isDefault: true },
+      ],
+    });
   });
 });
