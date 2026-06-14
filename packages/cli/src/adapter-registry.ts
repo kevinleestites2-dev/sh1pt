@@ -42,7 +42,7 @@ export const CATEGORIES: readonly AdapterCategory[] = [
       'chutes', 'clarifai', 'claude', 'cloudflare', 'cohere', 'deepinfra',
       'deepseek', 'featherless', 'fireworks', 'friendli', 'gemini',
       'gmicloud', 'google-vertex', 'groq', 'inception', 'inceptron',
-      'infermatic', 'inflection', 'ionet', 'kimi', 'liquid', 'mancer',
+      'infermatic', 'inflection', 'ionet', 'kimi', 'liquid', 'litellm', 'mancer',
       'minimax', 'mistral', 'moonshot', 'morph', 'nebius', 'nextbit',
       'novita', 'openai', 'openinference', 'parasail', 'perceptron',
       'perplexity', 'phala', 'qwen', 'reka', 'relace', 'sambanova',
@@ -126,7 +126,7 @@ export const CATEGORIES: readonly AdapterCategory[] = [
     id: 'mcp-servers',
     pkgPrefix: '@profullstack/sh1pt-mcp-server',
     description: 'MCP server callers - tool calls over configured MCP transports',
-    adapters: ['penpot'],
+    adapters: ['penpot', 'specification-website'],
   },
   {
     id: 'outreach',
@@ -144,7 +144,7 @@ export const CATEGORIES: readonly AdapterCategory[] = [
     id: 'promo',
     pkgPrefix: '@profullstack/sh1pt-promo',
     description: 'Ad networks + fundraising rails',
-    adapters: ['angellist', 'apple-search', 'capitalreach', 'google', 'kickstarter', 'linkedin', 'meta', 'microsoft', 'openvc', 'reddit', 'tiktok', 'wefunder', 'x', 'youtube'],
+    adapters: ['angellist', 'apple-search', 'capitalreach', 'google', 'kickstarter', 'linkedin', 'meta', 'microsoft', 'openvc', 'posthog', 'reddit', 'tiktok', 'wefunder', 'x', 'youtube'],
   },
   {
     id: 'recipes',
