@@ -39,6 +39,12 @@ describe('social follow target parsing', () => {
     expect(() => parseSocialFollowTarget('https://example.com/alice')).toThrow('only supports bsky.app URLs');
   });
 
+  it('rejects malformed Bluesky profile URLs with a useful error', () => {
+    expect(() => parseSocialFollowTarget('https://bsky.app/profile/%E0%A4%A')).toThrow(
+      'Could not parse Bluesky profile URL',
+    );
+  });
+
   it('normalizes follow actions', () => {
     expect(normalizeFollowAction(undefined)).toBe('follow');
     expect(normalizeFollowAction('follow')).toBe('follow');

@@ -95,7 +95,12 @@ export function parseSocialFollowTarget(input: string, explicitPlatform?: string
     throw new Error(`social follow only supports bsky.app URLs today; got ${host}`);
   }
 
-  const segments = url.pathname.split('/').filter(Boolean).map(decodeURIComponent);
+  let segments: string[];
+  try {
+    segments = url.pathname.split('/').filter(Boolean).map(decodeURIComponent);
+  } catch {
+    throw new Error(`Could not parse Bluesky profile URL ${input}`);
+  }
   const profileIndex = segments.indexOf('profile');
   const actor = profileIndex >= 0 ? segments[profileIndex + 1] : undefined;
   if (!actor) throw new Error(`Could not find a Bluesky profile handle or DID in ${input}`);
