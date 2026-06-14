@@ -4,10 +4,24 @@ Provides the RunPod (GPU) cloud provider adapter for sh1pt scale and deploy work
 
 ## What it does
 
-- Connects cloud provider credentials and project settings.
-- Supports infrastructure planning, deployment, or status workflows where implemented.
-- Includes a connection flow for account or credential setup.
-- Includes setup guidance for required credentials or provider configuration.
+- Connects to RunPod through the GraphQL API with `RUNPOD_API_KEY`.
+- Quotes GPU pods from either explicit `hourlyPrice` config or RunPod `gpuTypes` pricing.
+- Uses the highest available price when `cloudType` is `ALL` so `maxHourlyPrice` is not checked against a lower community-only estimate.
+- Uses on-demand GPU prices for guardrails; spot bids are not sent by this adapter.
+- Fails clearly when the requested GPU type is not returned instead of silently selecting another GPU.
+- Provisions on-demand GPU pods with `podFindAndDeployOnDemand`.
+- Lists account pods, checks a pod by ID, and terminates pods with `podTerminate`.
+- Requires `imageName` for real provisioning and supports `maxHourlyPrice` guardrails before any pod is created.
+- Does not call RunPod during dry-run provisioning; set `hourlyPrice` to simulate a non-zero cost in dry-run output.
+
+Common config fields:
+
+- `gpuTypeId`: RunPod GPU type ID, such as `NVIDIA RTX A6000`.
+- `imageName`: container image for real pod creation, such as `runpod/pytorch`.
+- `cloudType`: `ALL`, `COMMUNITY`, or `SECURE`.
+- `hourlyPrice`: optional explicit offline quote value per GPU.
+- `volumeInGb`: optional network volume size; omitted unless explicitly requested through config or the spec storage field.
+- `ports`, `dockerArgs`, `containerDiskInGb`, `minVcpuCount`, `minMemoryInGb`, `volumeMountPath`, `networkVolumeId`, and `env`.
 
 ## Package
 
