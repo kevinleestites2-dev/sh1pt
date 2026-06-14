@@ -22,6 +22,19 @@ describe('social follow target parsing', () => {
     });
   });
 
+  it('trims whitespace around Bluesky handles and URLs', () => {
+    expect(parseSocialFollowTarget(' @alice.bsky.social ', 'bluesky')).toEqual({
+      platform: 'bluesky',
+      actor: 'alice.bsky.social',
+      source: 'profile',
+    });
+    expect(parseSocialFollowTarget(' https://bsky.app/profile/source.bsky.social/followers ')).toEqual({
+      platform: 'bluesky',
+      actor: 'source.bsky.social',
+      source: 'followers',
+    });
+  });
+
   it('rejects unsupported social URLs', () => {
     expect(() => parseSocialFollowTarget('https://example.com/alice')).toThrow('only supports bsky.app URLs');
   });

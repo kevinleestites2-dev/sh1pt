@@ -74,6 +74,7 @@ interface BlueskyCreateRecordResponse extends BlueskyErrorResponse {
 }
 
 export function parseSocialFollowTarget(input: string, explicitPlatform?: string): SocialFollowTarget {
+  input = input.trim();
   const platform = normalizePlatform(explicitPlatform);
   if (platform && platform !== 'bluesky') {
     throw new Error(`social follow only supports Bluesky URLs today; got --platform ${explicitPlatform}`);
