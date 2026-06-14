@@ -110,7 +110,7 @@ export function parseSocialFollowTarget(input: string, explicitPlatform?: string
 
 export function normalizeFollowAction(action: string | undefined, unfollow = false): SocialFollowAction {
   if (unfollow) return 'unfollow';
-  const normalized = (action ?? 'follow').toLowerCase();
+  const normalized = (action ?? 'follow').trim().toLowerCase();
   if (normalized === 'follow' || normalized === 'unfollow') return normalized;
   throw new Error(`Expected --action follow or --action unfollow; got "${action}"`);
 }

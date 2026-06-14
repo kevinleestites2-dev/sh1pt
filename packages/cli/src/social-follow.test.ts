@@ -29,6 +29,7 @@ describe('social follow target parsing', () => {
   it('normalizes follow actions', () => {
     expect(normalizeFollowAction(undefined)).toBe('follow');
     expect(normalizeFollowAction('follow')).toBe('follow');
+    expect(normalizeFollowAction(' unfollow ')).toBe('unfollow');
     expect(normalizeFollowAction('follow', true)).toBe('unfollow');
     expect(() => normalizeFollowAction('block')).toThrow('Expected --action follow or --action unfollow');
   });
