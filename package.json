@@ -1,13 +1,9 @@
 {
-  "name": "@profullstack/sh1pt",
-  "version": "0.4.15",
+  "name": "sh1pt",
+  "version": "0.0.0",
   "private": true,
   "description": "One codebase → every store, registry, CDN, and channel. AI agents tighten the loop.",
   "packageManager": "pnpm@9.12.0",
-  "bin": {
-    "sh1pt": "./bin/sh1pt.js",
-    "aube": "./bin/sh1pt.js"
-  },
   "scripts": {
     "build": "pnpm --filter sh1pt-dot-com build",
     "start": "pnpm --filter sh1pt-dot-com start",
